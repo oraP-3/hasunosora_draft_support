@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>蓮ノ空ドラフトサポート v1.2.1</title>
+<style>
+  :root{
+    --bg:#f8fafc; --card:#ffffff; --ink:#172033; --muted:#6b7280; --line:#e5e7eb;
+    --accent:#8b5cf6; --accent-dark:#6d28d9; --accent-soft:#f3e8ff;
+    --pink:#ec4899; --blue:#3b82f6; --green:#10b981; --orange:#f59e0b;
+    --ok:#059669; --warn:#d97706; --bad:#dc2626;
+    --shadow:0 8px 24px rgba(15,23,42,.06);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Sans","Yu Gothic",Meiryo,sans-serif;background:var(--bg);color:var(--ink)}
+  header{padding:18px 18px 12px;background:linear-gradient(135deg,#f7e8ff,#ffe8f4 55%,#e7f7ff);border-bottom:1px solid var(--line)}
+  header .top{max-width:1320px;margin:0 auto;display:flex;justify-content:space-between;gap:12px;align-items:flex-end;flex-wrap:wrap}
+  h1{font-size:22px;margin:0 0 6px;letter-spacing:.02em}
+  .subtitle{color:#596174;font-size:13px;line-height:1.5}
+  .version{font-size:12px;font-weight:800;color:#4c1d95;background:white;border:1px solid #ddd6fe;border-radius:999px;padding:6px 10px}
+  main{max-width:1320px;margin:0 auto;padding:16px}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;position:sticky;top:0;z-index:10;background:rgba(248,250,252,.9);backdrop-filter:blur(10px);padding:8px 0}
+  .tab{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 14px;cursor:pointer;font-weight:800;color:var(--ink)}
+  .tab.active{background:var(--accent);color:white;border-color:var(--accent)}
+  .panel{display:none}.panel.active{display:block}
+  .grid{display:grid;grid-template-columns:minmax(350px,.86fr) minmax(0,1.14fr);gap:14px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  #songCategoryCounts .card{margin-top:0;min-height:64px;display:flex;flex-direction:column;justify-content:center}
+  @media(max-width:980px){.grid,.grid2,.grid3,.grid4{grid-template-columns:1fr}.sticky{position:static!important}.tabs{position:static}.song{grid-template-columns:1fr!important}.actions{justify-content:flex-start!important}.roundRow{grid-template-columns:1fr!important}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--shadow)}
+  .card + .card{margin-top:14px}
+  h2{font-size:18px;margin:0 0 12px} h3{font-size:15px;margin:0 0 8px}
+  label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px;font-weight:700}
+  input,select,textarea,button{font-family:inherit;font-size:14px}
+  input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+  textarea{min-height:86px;resize:vertical}
+  button{border:0;border-radius:10px;padding:10px 12px;background:var(--accent);color:white;font-weight:800;cursor:pointer;white-space:nowrap}
+  button:hover{filter:brightness(.98)}
+  button.secondary{background:#eef2ff;color:#3730a3}
+  button.gray{background:#f3f4f6;color:#374151;border:1px solid var(--line)}
+  button.danger{background:#fee2e2;color:#991b1b}
+  button.ok{background:#d1fae5;color:#065f46}
+  button.warn{background:#fef3c7;color:#92400e}
+  button.mini{font-size:12px;padding:6px 8px;border-radius:8px}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .row{display:flex;gap:8px;align-items:end}.row>*{flex:1}.row .fit{flex:0 0 auto}
+  .roundRow{display:grid;grid-template-columns:90px 1fr auto;gap:8px;align-items:end;margin-bottom:8px}
+  .small{font-size:12px;color:var(--muted);line-height:1.55}
+  .hint{font-size:12px;color:#4b5563;background:#f9fafb;border:1px dashed #d1d5db;border-radius:12px;padding:9px;line-height:1.55}
+  .pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:4px 8px;font-size:12px;font-weight:800;background:#f3f4f6;color:#374151;margin:2px;vertical-align:middle}
+  .pill.ok{background:#d1fae5;color:#065f46}.pill.warn{background:#fef3c7;color:#92400e}.pill.bad{background:#fee2e2;color:#991b1b}.pill.purple{background:#ede9fe;color:#5b21b6}.pill.blue{background:#dbeafe;color:#1d4ed8}.pill.pink{background:#fce7f3;color:#be185d}
+  .song-list{max-height:500px;overflow:auto;border:1px solid var(--line);border-radius:12px;background:#fff}
+  .song{display:grid;grid-template-columns:1fr auto;gap:8px;padding:10px;border-bottom:1px solid #f3f4f6;align-items:center}
+  .song:last-child{border-bottom:0}.song-title{font-weight:800}.song-meta{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.5}
+  .song.acquired{background:#f9fafb;color:#9ca3af}.song.mine{background:#ecfdf5}.song.wish{background:#fffbeb}.song.taken{background:#fef2f2;color:#7f1d1d}.song.pickable:hover{background:#f5f3ff}
+  .actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
+  .team-card{border-left:6px solid #ddd}.teamA{border-left-color:var(--pink)}.teamB{border-left-color:var(--blue)}.teamC{border-left-color:var(--green)}
+  .progress-line{display:grid;grid-template-columns:minmax(130px,1fr) 52px 110px;gap:8px;align-items:center;padding:6px 0;border-bottom:1px dashed #eee}.progress-line:last-child{border-bottom:0}
+  .bar{height:8px;background:#e5e7eb;border-radius:999px;overflow:hidden}.bar span{display:block;height:100%;background:var(--accent)}
+  .notice{padding:10px 12px;border-radius:12px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;margin:8px 0;font-weight:800;line-height:1.45}
+  .notice.ok{background:#ecfdf5;border-color:#a7f3d0;color:#065f46}.notice.bad{background:#fef2f2;border-color:#fecaca;color:#991b1b}.notice.info{background:#eff6ff;border-color:#bfdbfe;color:#1d4ed8}
+  .sticky{position:sticky;top:70px;align-self:start}
+  .count-large{font-size:32px;font-weight:950;line-height:1;color:var(--accent)}
+  .miniTable{width:100%;border-collapse:collapse;font-size:13px}.miniTable th,.miniTable td{border-bottom:1px solid #f0f1f4;padding:7px;text-align:left;vertical-align:top}.miniTable th{color:#6b7280;font-size:12px}
+  .setlist-item{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;padding:9px;border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:8px}
+  .setlist-item.marker{background:#f5f3ff;border-style:dashed}.setlist-item.dragging{opacity:.4}.grab{cursor:grab;color:#6b7280;font-weight:900;text-align:center}
+  .orderBtns{display:flex;gap:4px;flex-wrap:wrap}.orderBtns button{padding:6px 8px}
+  .memoInput{margin-top:6px;padding:8px;font-size:13px}.markerLabel{font-weight:800;margin-bottom:4px}
+  pre{white-space:pre-wrap;background:#111827;color:#f9fafb;padding:12px;border-radius:12px;max-height:360px;overflow:auto;font-size:13px;line-height:1.6}
+  .footer-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .summaryBox{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.summaryBox>div{background:#fafafa;border:1px solid var(--line);border-radius:12px;padding:10px}
+  @media(max-width:780px){.summaryBox{grid-template-columns:1fr}.progress-line{grid-template-columns:1fr 44px 90px}}
+  .copyToast{position:fixed;right:16px;bottom:16px;background:#111827;color:white;padding:10px 14px;border-radius:12px;font-weight:800;opacity:0;transform:translateY(8px);transition:.2s;z-index:99}.copyToast.show{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <div>
+      <h1>🪷 蓮ノ空ドラフトサポート</h1>
+      
+    </div>
+    <div class="version">v1.2.1 / Offline HTML</div>
+  </div>
+</header>
+<main>
+  <div id="bootNotice" class="notice info" style="display:none">アプリ起動チェック中...</div>
+  <div class="tabs">
+    <button class="tab active" data-tab="host">司会：公式記録</button>
+    <button class="tab" data-tab="player">プレイヤー：作戦</button>
+    <button class="tab" data-tab="setlist">セトリ作成</button>
+    <button class="tab" data-tab="songs">楽曲リスト</button>
+    <button class="tab" data-tab="data">保存・読込</button>
+  </div>
+
+  <section id="host" class="panel active">
+    <div class="grid">
+      <div class="card sticky">
+        <h2>司会用：公式獲得記録</h2>
+        <div class="hint">ホワイトボード公開・抽選が終わった後、最終的に各チームが獲得した曲だけを登録します。くじ引き、ジャンケン、タイマーはアナログ運用のままです。</div>
+        <div class="grid3" style="margin-top:12px">
+          <div><label>Aチーム名</label><input id="teamAName" value="Aチーム"></div>
+          <div><label>Bチーム名</label><input id="teamBName" value="Bチーム"></div>
+          <div><label>Cチーム名</label><input id="teamCName" value="Cチーム"></div>
+        </div>
+        <div class="card" style="box-shadow:none;margin-top:12px;background:#fbfbff">
+          <h3>この巡の獲得結果をまとめて登録</h3>
+          <div id="roundInputs"></div>
+          <div class="footer-actions">
+            <button id="registerRoundBtn">この巡を登録</button>
+            <button class="gray" id="clearRoundInputsBtn">入力欄クリア</button>
+          </div>
+          <div id="roundValidation" class="small" style="margin-top:8px"></div>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <div><label>曲名検索</label><input id="hostSongSearch" placeholder="未獲得曲を検索"></div>
+          <div><label>カテゴリ</label><select id="hostCategoryFilter"></select></div>
+        </div>
+        <div class="footer-actions">
+          <button class="gray" id="undoBtn">直前の登録を取り消し</button>
+          <button class="danger" id="resetOfficialBtn">公式記録リセット</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <h2>ドラフト状況</h2>
+          <div class="grid4">
+            <div><label>現在の目安巡</label><div id="roundNow" class="count-large">1</div></div>
+            <div><label>公式登録数</label><div id="assignedCount" class="count-large">0</div></div>
+            <div><label>残り楽曲数</label><div id="remainingCount" class="count-large">0</div></div>
+            <div><label>最少獲得曲数</label><div id="minTeamCount" class="count-large">0</div></div>
+          </div>
+          <div id="hostAlerts"></div>
+        </div>
+        <div class="card">
+          <h2>ノルマ進捗</h2>
+          <div id="hostQuota"></div>
+        </div>
+        <div class="card">
+          <h2>未獲得曲一覧</h2>
+          <div id="hostSongCandidates" class="song-list"></div>
+        </div>
+        <div class="card">
+          <h2>登録履歴</h2>
+          <div id="historyList" class="song-list" style="max-height:280px"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="player" class="panel">
+    <div class="grid">
+      <div class="card sticky">
+        <h2>プレイヤー用：作戦ボード</h2>
+        <div class="hint">各チームの手元用です。司会の公式記録とは同期しません。ホワイトボードと司会発表を見ながら、欲しい曲・自分が獲得した曲・取られた曲を手動で管理します。</div>
+        <div class="row" style="margin-top:12px">
+          <div><label>曲名検索</label><input id="playerSongSearch" placeholder="曲名で検索"></div>
+          <div><label>カテゴリ</label><select id="playerCategoryFilter"></select></div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <div><label>表示</label><select id="playerStatusFilter">
+            <option value="all">すべて</option>
+            <option value="free">未分類</option>
+            <option value="wish">欲しい</option>
+            <option value="mine">自分が獲得</option>
+            <option value="taken">他チーム獲得済み</option>
+          </select></div>
+          <div><label>優先度</label><select id="playerPriorityFilter">
+            <option value="all">すべて</option><option value="S">S：本命</option><option value="A">A：対抗</option><option value="B">B：外れ候補</option><option value="C">C：終盤候補</option><option value="cut">カット警戒</option><option value="none">未設定</option>
+          </select></div>
+        </div>
+        <div class="footer-actions">
+          <button class="gray" id="clearPlayerMarks">作戦メモをリセット</button>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <h2>自チーム ノルマ進捗</h2>
+          <div id="playerQuota"></div>
+        </div>
+        <div class="card">
+          <h2>作戦サマリー</h2>
+          <div id="playerSummary" class="summaryBox"></div>
+        </div>
+        <div class="card">
+          <h2>楽曲チェック</h2>
+          <div id="playerSongList" class="song-list"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="setlist" class="panel">
+    <div class="grid">
+      <div class="card sticky">
+        <h2>セトリ作成</h2>
+        <div class="row">
+          <div><label>対象チーム</label><select id="setlistTeam"></select></div>
+          <div><label>会場</label><input id="venueInput" placeholder="例：東京ドーム"></div>
+        </div>
+        <div style="margin-top:8px"><label>ライブコンセプト</label><textarea id="conceptInput" placeholder="例：始まりから未来へ、夢を咲かせる特別ライブ"></textarea></div>
+        <div class="footer-actions">
+          <button id="loadOfficialSongsBtn">公式獲得曲を読み込む</button>
+          <button class="secondary" id="loadPlayerMineBtn">プレイヤー獲得曲を読み込む</button>
+          <button class="gray" id="addMCBtn">MC追加</button>
+          <button class="gray" id="addMovieBtn">幕間映像追加</button>
+          <button class="gray" id="addEncoreBtn">アンコール区切り追加</button>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <div><label>曲を個別追加</label><input id="setlistSongAddInput" list="songDatalist" placeholder="曲名を入力"></div>
+          <div class="fit"><button class="secondary" id="addSongToSetlistBtn">追加</button></div>
+        </div>
+        <div id="setlistStats" style="margin-top:10px"></div>
+      </div>
+      <div>
+        <div class="card">
+          <h2>曲順</h2>
+          <div class="small" style="margin-bottom:8px">ドラッグ＆ドロップまたは上下ボタンで並び替えできます。</div>
+          <div id="setlistItems"></div>
+        </div>
+        <div class="card">
+          <h2>プレゼン用テキスト出力</h2>
+          <div class="footer-actions" style="margin-top:0;margin-bottom:8px">
+            <button id="generatePresentationBtn">出力を生成</button>
+            <button class="secondary" id="copyPresentationBtn">コピー</button>
+            <button class="gray" id="downloadPresentationBtn">txt保存</button>
+          </div>
+          <pre id="presentationOutput">ここに出力されます。</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="songs" class="panel">
+    <div class="card">
+      <h2>楽曲リスト確認</h2>
+      <div class="row">
+        <div><label>曲名検索</label><input id="allSongSearch" placeholder="曲名で検索"></div>
+        <div><label>カテゴリ</label><select id="allCategoryFilter"></select></div>
+      </div>
+      <div class="grid4" style="margin-top:12px" id="songCategoryCounts"></div>
+      <div id="allSongList" class="song-list" style="margin-top:10px;max-height:620px"></div>
+    </div>
+  </section>
+
+  <section id="data" class="panel">
+    <div class="grid2">
+      <div class="card">
+        <h2>保存・読込</h2>
+        <p class="small">データは自動的にブラウザ内に保存されます。当日運用では、途中でJSONを書き出しておくと安心です。</p>
+        <div class="footer-actions">
+          <button id="saveLocalBtn">ローカル保存</button>
+          <button class="secondary" id="exportJsonBtn">JSONを書き出し</button>
+          <button class="gray" id="downloadJsonBtn">JSONファイル保存</button>
+          <button class="danger" id="resetAllBtn">全データ初期化</button>
+        </div>
+        <div style="margin-top:12px"><label>JSON読込</label><textarea id="importJsonArea" placeholder="書き出したJSONを貼り付け"></textarea></div>
+        <button style="margin-top:8px" id="importJsonBtn">JSONを読み込む</button>
+      </div>
+      <div class="card">
+        <h2>v1.2で追加したこと</h2>
+        <ul class="small">
+          <li>司会モードに「この巡の3チーム分まとめて登録」を追加。</li>
+          <li>未獲得曲一覧からA/B/Cへ直接登録できるように変更。</li>
+          <li>履歴表示と個別削除を追加。</li>
+          <li>プレイヤーモードに優先度管理を追加。</li>
+          <li>セトリ作成にドラッグ＆ドロップ、個別曲追加、txt保存を追加。</li>
+          <li>画面切替時に検索条件やチーム選択が戻る問題を修正。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+<datalist id="songDatalist"></datalist>
+<div id="toast" class="copyToast">コピーしました</div>
+<script>
+const APP_VERSION = "1.2.1";
+const STORAGE_KEY = "hasuDraftSupportV12";
+const OLD_STORAGE_KEYS = ["hasuDraftSupportV11", "hasuDraftSupportV1"];
+const QUOTA = {"スリーズブーケ":3,"DOLLCHESTRA":3,"みらくらぱーく！":3,"Edel Note":2};
+const TEAM_KEYS = ["A","B","C"];
+const TEAM_CLASS = {A:"teamA",B:"teamB",C:"teamC"};
+const songs = [
+  ...["Dream Believers","On your mark","永遠のEuphoria","DEEPNESS","夏めきペイン","Yup!Yup!Yup!","明日の空の僕たちへ","Legato","Trick&Cute","ツバサ・ラ・リベルテ","Link to the FUTURE","抱きしめる花びら","STEP UP!","Bloom the smile,Bloom the dream!","365 Days","Now or Never","KEY of Like!","AURORA FLOWER","ゲッカビジン","おいでよ！石川大観光","いつでも、いつまでも","いったん","Hallo,new dream!","アイドゥーミー!","とーひょー☆スター!","一生に夢が咲くように","はじまりの羽音","チャーミングな花束を!","雪舞う空と二秒の永遠","Echoes Beyond","JOKER.","今、過去、未来の三原色","ハナ咲けばユメ駆ける","光の中で花咲いて"].map(title=>({title,category:"全体曲"})),
+  ...["水彩世界","Reflection in the mirror","フォーチュンムービー","Mix shake!!","謳歌爛漫","Holiday∞Holiday","眩耀夜行","Kawaii no susume","残陽","Dear my future","素顔のピクセル","シュガーメルト","千変万華","Special Thanks","Reflection in the mirror 104期NEW Ver.","アオクハルカ","月夜見海月","ハナムスビ","恋景色昭和ロマン","ユメワズライ","Chu! Chocolate","Celebration!","37.5℃のファンタジー","フルーツパンチ","My Lucky Clover","可惜夜花火","乙女詞華集","Sayo-Shigure","Berry Merry Go Round","不思議と君とライブラリー","金沢片恋慕"].map(title=>({title,category:"スリーズブーケ"})),
+  ...["AWOKE","Sparkly Spot","ツキマカセ","希望的プリズム","スケイプゴート","Tragic Drops","Mirage Voyage","ジブンダイアリー","青春の輪郭","パラレルダンサー","Take It Over","飴色","KNOT","青とシャボン","Sparkly Spot 104期NEW Ver.","レディバグ","Proof","バアドケージ","ベジ・ラブ・ルー","COMPASS","レム","アンペア","アイマイメーデー","太陽であれ!","diamondz","ブルウモーメント","ガランドFlash","リブウト","フリジア","アイシイ","アンブレラ"].map(title=>({title,category:"DOLLCHESTRA"})),
+  ...["ド！ド！ド！","ココン東西","ハクチューアラモード","アイデンティティ","天才なのかもしれない","ノンフィクションヒーローショー","ミルク","以心☆電信","BANG YOU グラビティ","マハラジャンボリー","アイデンティティ 104期NEW Ver.","みらくりえーしょん","ファンファーレ！！！","ジョーショーキリュー","マハラジャンボリーⅡ","全方位キュン♡","かくれんぼしよう","WAWO!","BLAST!!","Very! Very! COCO夏っ","ニャオシグニャル","ハートにQ","バイタルサイン","Hip,hip,hooray!","PANAI☆","トモダチになれる場所","センパイ"].map(title=>({title,category:"みらくらぱーく！"})),
+  ...["Edelied","Retrofuture","天地黎明","チリコンカン","十六夜セレーネ","フュージョンクラスト","片翼のトリバガ","ドライブ・スペード・クレイジー","シアター生き様","令嬢モブ！","咲かnow!","EdelinieN","ミアモーレ・ミーアキャット","A出るノート"].map(title=>({title,category:"Edel Note"})),
+  ...["ハッピー至上主義！","Pleasure Feather","Colorfulness","ちょ、尊いLOVE","平成ギャルズ!!!!","Nɛw Black","IcHiGo milK","アステリズム","Love it! Wonderful Trip!","ペレニアル","恥は人生のかきすて","プレイリスト/「あの日」","Runway","Bless you!","be proud","幸せのリボン","ミジンコトランスフォーメーション","やっぱ天使!","ハロめぐ讃歌"].map(title=>({title,category:"ソロ曲・その他"}))
+].map((s,i)=>({...s,id:`song_${i}`}));
+const categories = ["すべて","全体曲","スリーズブーケ","DOLLCHESTRA","みらくらぱーく！","Edel Note","ソロ曲・その他"];
+const priorityLabels = {S:"S：本命",A:"A：対抗",B:"B：外れ候補",C:"C：終盤候補",cut:"カット警戒",none:"未設定"};
+const statusLabels = {free:"未分類",wish:"欲しい",mine:"自分が獲得",taken:"他チーム獲得済み"};
+let state = defaultState();
+let dragIndex = null;
+function defaultState(){return {
+  version: APP_VERSION,
+  teamNames:{A:"Aチーム",B:"Bチーム",C:"Cチーム"},
+  official:{},
+  history:[],
+  playerMarks:{},
+  setlists:{A:{venue:"",concept:"",items:[]},B:{venue:"",concept:"",items:[]},C:{venue:"",concept:"",items:[]}}
+};}
+function $(id){return document.getElementById(id)}
+function esc(s){return String(s??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));}
+function norm(s){return String(s||"").trim().toLowerCase();}
+function songById(id){return songs.find(s=>s.id===id)}
+function songByTitle(title){const n=norm(title); return songs.find(s=>norm(s.title)===n)}
+function teamName(k){return state.teamNames[k]||`${k}チーム`}
+function assignedRec(songId){const rec=state.official[songId]; if(!rec) return null; return typeof rec==="string"?{team:rec,round:null,order:0}:rec;}
+function assignedTeam(songId){return assignedRec(songId)?.team||null}
+function countByTeam(team){return Object.values(state.official).filter(r=>(typeof r==="string"?r:r.team)===team).length}
+function teamSongs(team){return songs.filter(s=>assignedTeam(s.id)===team).sort((a,b)=>(assignedRec(a.id)?.order??0)-(assignedRec(b.id)?.order??0));}
+function allAssignedCount(){return Object.keys(state.official).length}
+function playerMark(id){return state.playerMarks[id]||{status:"free",priority:"none",memo:""}}
+function playerMineSongs(){return songs.filter(s=>playerMark(s.id).status==="mine")}
+function quotaCounts(list){const counts={}; Object.keys(QUOTA).forEach(c=>counts[c]=0); list.forEach(s=>{if(s && counts[s.category]!==undefined) counts[s.category]++}); return counts;}
+function quotaHtml(list){const counts=quotaCounts(list); return Object.entries(QUOTA).map(([cat,need])=>{
+  const got=counts[cat]||0; const cls=got>=need?'ok': got>0?'warn':'bad'; const pct=Math.min(100, Math.round(got/need*100));
+  return `<div class="progress-line"><span><span class="pill ${cls}">${esc(cat)}</span></span><span><b>${got}</b>/${need}</span><span class="bar"><span style="width:${pct}%"></span></span></div>`;
+}).join("");}
+function missingQuota(list){const counts=quotaCounts(list); return Object.entries(QUOTA).filter(([c,n])=>(counts[c]||0)<n).map(([c])=>c);}
+function currentRound(){const counts=TEAM_KEYS.map(countByTeam); const min=Math.min(...counts); return min>=32 ? "完" : String(min+1);}
+let storageAvailable = true;
+function storageGet(key){
+  try{return window.localStorage ? localStorage.getItem(key) : null;}
+  catch(e){storageAvailable=false; console.warn("localStorage get unavailable", e); return null;}
+}
+function storageSet(key,value){
+  try{if(!window.localStorage) throw new Error("localStorage unavailable"); localStorage.setItem(key,value); return true;}
+  catch(e){storageAvailable=false; console.warn("localStorage set unavailable", e); return false;}
+}
+function storageRemove(key){
+  try{if(window.localStorage) localStorage.removeItem(key);}
+  catch(e){storageAvailable=false; console.warn("localStorage remove unavailable", e);}
+}
+function save(){state.version=APP_VERSION; storageSet(STORAGE_KEY, JSON.stringify(state));}
+function load(){
+  let raw=storageGet(STORAGE_KEY);
+  if(!raw){for(const key of OLD_STORAGE_KEYS){raw=storageGet(key); if(raw) break;}}
+  if(!raw) return;
+  try{
+    const data=JSON.parse(raw); state=migrateState(data);
+  }catch(e){console.warn(e)}
+}
+function renderBootNotice(){
+  const el=$("bootNotice"); if(!el) return;
+  if(storageAvailable){
+    el.className="notice ok"; el.style.display="block"; el.textContent="✅ アプリ起動OK：ボタン操作できます。データはこの端末のブラウザ内に保存されます。";
+  }else{
+    el.className="notice warn"; el.style.display="block"; el.textContent="⚠️ アプリ起動OK：ただしこの表示環境では端末内保存が制限されています。操作はできますが、保存・読込画面のJSONバックアップを使ってください。";
+  }
+}
+function migrateState(data){
+  const base=defaultState(); const next={...base,...data};
+  next.teamNames={...base.teamNames,...(data.teamNames||{})};
+  next.official={};
+  Object.entries(data.official||{}).forEach(([sid,val],i)=>{next.official[sid]=typeof val==="string"?{team:val,round:null,order:i+1}:val});
+  next.history=Array.isArray(data.history)?data.history:[];
+  next.playerMarks={};
+  Object.entries(data.playerMarks||{}).forEach(([sid,val])=>{next.playerMarks[sid]=typeof val==="string"?{status:val,priority:"none",memo:""}:{status:val.status||"free",priority:val.priority||"none",memo:val.memo||""}});
+  const oldSetlists=data.setlists||{}; next.setlists={};
+  TEAM_KEYS.forEach(k=>{
+    if(Array.isArray(oldSetlists[k])) next.setlists[k]={venue:(data.venues||{})[k]||"",concept:(data.concepts||{})[k]||"",items:oldSetlists[k]};
+    else next.setlists[k]={...base.setlists[k],...(oldSetlists[k]||{})};
+  });
+  return next;
+}
+function fillSelectOptions(id, options, current){
+  const el=$(id); const old=current!==undefined?current:el.value; el.innerHTML=options.map(o=>`<option value="${esc(o.value)}">${esc(o.label)}</option>`).join(""); if(options.some(o=>String(o.value)===String(old))) el.value=old;
+}
+function initStaticOptions(){
+  const catOptions=categories.map(c=>({value:c,label:c})); ["hostCategoryFilter","playerCategoryFilter","allCategoryFilter"].forEach(id=>fillSelectOptions(id,catOptions,"すべて"));
+  $("songDatalist").innerHTML=songs.map(s=>`<option value="${esc(s.title)}">${esc(s.category)}</option>`).join("");
+}
+function syncTeamInputs(){TEAM_KEYS.forEach(k=>{$(`team${k}Name`).value=teamName(k)});}
+function refreshTeamSelects(){
+  const opts=TEAM_KEYS.map(k=>({value:k,label:teamName(k)}));
+  fillSelectOptions("setlistTeam",opts,$("setlistTeam").value||"A");
+}
+function renderRoundInputs(){
+  const html=TEAM_KEYS.map(k=>`<div class="roundRow"><div><label>${esc(teamName(k))}</label><span class="pill ${k==='A'?'pink':k==='B'?'blue':'ok'}">${countByTeam(k)}/32曲</span></div><div><input id="roundInput_${k}" list="songDatalist" placeholder="${esc(teamName(k))}の獲得曲"></div><div><button class="mini gray" onclick="clearRoundInput('${k}')">クリア</button></div></div>`).join("");
+  $("roundInputs").innerHTML=html;
+}
+function clearRoundInput(k){$(`roundInput_${k}`).value=""; validateRoundInputs();}
+function validateRoundInputs(){
+  const entries=[]; const errors=[];
+  TEAM_KEYS.forEach(k=>{const val=$(`roundInput_${k}`)?.value.trim(); if(val){const s=songByTitle(val); if(!s) errors.push(`${teamName(k)}：曲名がリストにありません`); else if(assignedTeam(s.id)) errors.push(`${teamName(k)}：${s.title} は獲得済みです`); else entries.push({team:k,song:s});}});
+  const ids=entries.map(e=>e.song.id); const dup=ids.find((id,i)=>ids.indexOf(id)!==i); if(dup) errors.push(`${songById(dup).title} が入力欄内で重複しています`);
+  $("roundValidation").innerHTML = errors.length?`<span class="pill bad">要確認</span> ${esc(errors.join(" / "))}`:`<span class="pill ok">入力OK</span> ${entries.length}件登録できます`;
+  return {entries,errors};
+}
+function registerRound(){
+  const {entries,errors}=validateRoundInputs(); if(errors.length){alert(errors.join("\n")); return;} if(!entries.length){alert("登録する曲を入力してください"); return;}
+  const round = Math.min(...TEAM_KEYS.map(countByTeam)) + 1;
+  const batchId = `batch_${Date.now()}`; const orderBase=allAssignedCount()+1;
+  entries.forEach((e,idx)=>{state.official[e.song.id]={team:e.team,round,order:orderBase+idx,batchId};});
+  state.history.push({type:"batch",batchId,round,entries:entries.map(e=>({songId:e.song.id,team:e.team})),at:new Date().toISOString()});
+  save(); renderAll(); toast(`${entries.length}曲を登録しました`);
+}
+function assignDirect(songId,team){
+  if(assignedTeam(songId)){alert("この曲はすでに獲得済みです"); return;}
+  const round=Math.min(...TEAM_KEYS.map(countByTeam))+1; const batchId=`single_${Date.now()}`;
+  state.official[songId]={team,round,order:allAssignedCount()+1,batchId}; state.history.push({type:"single",batchId,round,entries:[{songId,team}],at:new Date().toISOString()}); save(); renderAll();
+}
+function undoLast(){
+  const last=state.history.pop(); if(!last){alert("取り消す履歴がありません");return}
+  (last.entries||[]).forEach(e=>delete state.official[e.songId]); save(); renderAll(); toast("直前の登録を取り消しました");
+}
+function removeOfficial(songId){
+  const s=songById(songId); if(!confirm(`${s?.title||"この曲"} の公式登録を削除しますか？`)) return;
+  delete state.official[songId]; state.history=state.history.filter(h=>!(h.entries||[]).some(e=>e.songId===songId)); save(); renderAll();
+}
+function renderHostSummary(){
+  const counts=TEAM_KEYS.map(countByTeam); const min=Math.min(...counts);
+  $("roundNow").textContent=currentRound(); $("assignedCount").textContent=allAssignedCount(); $("remainingCount").textContent=songs.length-allAssignedCount(); $("minTeamCount").textContent=min;
+  let alert="";
+  if(min===16) alert+=`<div class="notice">16巡終了目安：ノルマ中間確認のタイミングです。</div>`;
+  if(min===24) alert+=`<div class="notice">24巡終了目安：ノルマ最終確認のタイミングです。未達チームは25巡以降、未達ユニットを優先指名。</div>`;
+  if(min>=25){TEAM_KEYS.forEach(k=>{const miss=missingQuota(teamSongs(k)); if(miss.length) alert+=`<div class="notice bad">${esc(teamName(k))}：${esc(miss.join("、"))} を優先指名してください。</div>`;});}
+  if(counts.some(c=>c!==min)) alert+=`<div class="notice info">チーム間の登録曲数がずれています。抽選後の再指名分など、未入力がないか確認してください。</div>`;
+  $("hostAlerts").innerHTML=alert;
+  $("hostQuota").innerHTML=TEAM_KEYS.map(k=>`<div class="card team-card ${TEAM_CLASS[k]}" style="margin-bottom:10px;box-shadow:none"><h3>${esc(teamName(k))} <span class="small">${countByTeam(k)}/32曲</span></h3>${quotaHtml(teamSongs(k))}<details style="margin-top:8px"><summary>獲得曲一覧</summary><div class="small">${teamSongs(k).map(s=>`${esc(s.title)}（${esc(s.category)}） <button class='mini danger' onclick="removeOfficial('${s.id}')">削除</button>`).join("<br>") || "未登録"}</div></details></div>`).join("");
+}
+function renderHostCandidates(){
+  const q=norm($("hostSongSearch").value); const cat=$("hostCategoryFilter").value;
+  const list=songs.filter(s=>!assignedTeam(s.id)).filter(s=>(cat==="すべて"||s.category===cat)).filter(s=>!q||norm(s.title).includes(q));
+  $("hostSongCandidates").innerHTML=list.map(s=>`<div class="song pickable"><div><div class="song-title">${esc(s.title)}</div><div class="song-meta">${esc(s.category)}</div></div><div class="actions">${TEAM_KEYS.map(k=>`<button class="mini ${k==='A'?'danger':k==='B'?'secondary':'ok'}" onclick="assignDirect('${s.id}','${k}')">${esc(teamName(k))}</button>`).join("")}</div></div>`).join("") || `<div class="song"><div>該当する未獲得曲がありません。</div></div>`;
+}
+function renderHistory(){
+  const items=[];
+  Object.entries(state.official).forEach(([sid,rec])=>{const s=songById(sid); const r=assignedRec(sid); if(s&&r) items.push({song:s,rec:r});});
+  items.sort((a,b)=>(b.rec.order??0)-(a.rec.order??0));
+  $("historyList").innerHTML=items.map(x=>`<div class="song"><div><div class="song-title">${esc(x.song.title)}</div><div class="song-meta">${esc(x.song.category)} / ${esc(teamName(x.rec.team))} 獲得 ${x.rec.round?`/ ${x.rec.round}巡目`:""}</div></div><div class="actions"><button class="mini danger" onclick="removeOfficial('${x.song.id}')">削除</button></div></div>`).join("") || `<div class="song"><div>まだ登録がありません。</div></div>`;
+}
+function renderPlayer(){
+  const q=norm($("playerSongSearch").value); const cat=$("playerCategoryFilter").value; const st=$("playerStatusFilter").value; const pr=$("playerPriorityFilter").value;
+  const list=songs.filter(s=>(cat==="すべて"||s.category===cat)).filter(s=>!q||norm(s.title).includes(q)).filter(s=>{
+    const m=playerMark(s.id); const status=m.status||"free"; const priority=m.priority||"none";
+    return (st==="all"||status===st) && (pr==="all"||priority===pr);
+  });
+  $("playerQuota").innerHTML=quotaHtml(playerMineSongs()) + `<div class="small" style="margin-top:8px">自分が獲得：${playerMineSongs().length}/32曲</div>`;
+  const byStatus={wish:[],mine:[],taken:[]}; songs.forEach(s=>{const m=playerMark(s.id); if(byStatus[m.status]) byStatus[m.status].push(s);});
+  $("playerSummary").innerHTML=[
+    ["wish","欲しい"],["mine","自分が獲得"],["taken","取られた"]
+  ].map(([key,label])=>`<div><h3>${label} <span class="pill">${byStatus[key].length}</span></h3><div class="small">${byStatus[key].slice(0,12).map(s=>esc(s.title)).join("<br>") || "なし"}${byStatus[key].length>12?"<br>…":""}</div></div>`).join("");
+  $("playerSongList").innerHTML=list.map(s=>{
+    const m=playerMark(s.id); const status=m.status||"free"; const priority=m.priority||"none"; const cls=status;
+    return `<div class="song ${cls}"><div><div class="song-title">${esc(s.title)}</div><div class="song-meta">${esc(s.category)} <span class="pill ${status==='mine'?'ok':status==='taken'?'bad':status==='wish'?'warn':''}">${esc(statusLabels[status])}</span> <span class="pill purple">${esc(priorityLabels[priority]||priority)}</span></div><input class="memoInput" value="${esc(m.memo||"")}" placeholder="作戦メモ" onchange="updatePlayerMemo('${s.id}', this.value)"></div><div class="actions"><button class="mini gray" onclick="markPlayer('${s.id}','free')">解除</button><button class="mini warn" onclick="markPlayer('${s.id}','wish')">欲しい</button><button class="mini ok" onclick="markPlayer('${s.id}','mine')">獲得</button><button class="mini danger" onclick="markPlayer('${s.id}','taken')">取られた</button><select style="width:120px;padding:6px" onchange="setPriority('${s.id}', this.value)">${Object.entries(priorityLabels).map(([v,l])=>`<option value="${v}" ${priority===v?'selected':''}>${esc(l)}</option>`).join("")}</select></div></div>`;
+  }).join("") || `<div class="song"><div>該当する曲がありません。</div></div>`;
+}
+function markPlayer(id,status){const m=playerMark(id); if(status==="free") delete state.playerMarks[id]; else state.playerMarks[id]={...m,status}; save(); renderPlayer();}
+function setPriority(id,priority){const m=playerMark(id); state.playerMarks[id]={...m,priority}; save(); renderPlayer();}
+function updatePlayerMemo(id,memo){const m=playerMark(id); state.playerMarks[id]={...m,memo}; save();}
+function renderAllSongs(){
+  const q=norm($("allSongSearch").value); const cat=$("allCategoryFilter").value;
+  const list=songs.filter(s=>(cat==="すべて"||s.category===cat)).filter(s=>!q||norm(s.title).includes(q));
+  const counts={}; categories.slice(1).forEach(c=>counts[c]=songs.filter(s=>s.category===c).length);
+  $("songCategoryCounts").innerHTML=Object.entries(counts).map(([c,n])=>`<div class="card" style="box-shadow:none;padding:10px"><div class="small">${esc(c)}</div><b>${n}曲</b></div>`).join("");
+  $("allSongList").innerHTML=list.map(s=>{const t=assignedTeam(s.id); return `<div class="song ${t?'acquired':''}"><div><div class="song-title">${esc(s.title)}</div><div class="song-meta">${esc(s.category)} ${t?`<span class="pill ok">公式：${esc(teamName(t))}獲得</span>`:''}</div></div></div>`}).join("");
+}
+function ensureSetlist(team){if(!state.setlists[team] || Array.isArray(state.setlists[team])) state.setlists[team]={venue:"",concept:"",items:[]}; return state.setlists[team];}
+function currentSetTeam(){return $("setlistTeam").value||"A"}
+function renderSetlist(){
+  const t=currentSetTeam(); const sl=ensureSetlist(t); $("venueInput").value=sl.venue||""; $("conceptInput").value=sl.concept||"";
+  const songItems=sl.items.filter(x=>x.type==="song").map(x=>songById(x.songId)).filter(Boolean);
+  const miss=missingQuota(songItems); const songCount=songItems.length;
+  $("setlistStats").innerHTML=`<div class="notice ${songCount===32 && !miss.length?'ok':songCount>32?'bad':'info'}">曲数：${songCount}/32　${miss.length?`未達：${esc(miss.join("、"))}`:"ノルマOK"}</div>${quotaHtml(songItems)}`;
+  $("setlistItems").innerHTML=sl.items.map((item,i)=>renderSetlistItem(item,i)).join("") || `<div class="small">まだ曲が読み込まれていません。</div>`;
+}
+function renderSetlistItem(item,i){
+  const isMarker=item.type!=="song"; const s=isMarker?null:songById(item.songId); const title=isMarker?item.label:(s?.title||"不明な曲"); const cat=isMarker?item.type:(s?.category||"");
+  return `<div class="setlist-item ${isMarker?'marker':''}" draggable="true" ondragstart="onDragStart(${i})" ondragover="onDragOver(event)" ondrop="onDrop(${i})" ondragend="onDragEnd()"><div class="grab">☰</div><div>${isMarker?`<input class="markerLabel" value="${esc(title)}" onchange="setMarkerLabel(${i}, this.value)">`:`<b>${esc(title)}</b>`}<div class="small">${esc(cat)}</div><input class="memoInput" value="${esc(item.memo||"")}" placeholder="演出メモ" onchange="setMemo(${i}, this.value)"></div><div class="orderBtns"><button class="mini gray" onclick="moveSetItem(${i},-1)">↑</button><button class="mini gray" onclick="moveSetItem(${i},1)">↓</button><button class="mini danger" onclick="removeSetItem(${i})">削除</button></div></div>`;
+}
+function setMemo(i,v){const sl=ensureSetlist(currentSetTeam()); sl.items[i].memo=v; save();}
+function setMarkerLabel(i,v){const sl=ensureSetlist(currentSetTeam()); sl.items[i].label=v||sl.items[i].type; save(); renderSetlist();}
+function moveSetItem(i,delta){const sl=ensureSetlist(currentSetTeam()); const arr=sl.items; const j=i+delta; if(j<0||j>=arr.length)return; [arr[i],arr[j]]=[arr[j],arr[i]]; save(); renderSetlist();}
+function removeSetItem(i){const sl=ensureSetlist(currentSetTeam()); sl.items.splice(i,1); save(); renderSetlist();}
+function onDragStart(i){dragIndex=i; setTimeout(()=>{document.querySelectorAll('.setlist-item')[i]?.classList.add('dragging')},0)}
+function onDragOver(e){e.preventDefault();}
+function onDrop(i){const sl=ensureSetlist(currentSetTeam()); if(dragIndex===null || dragIndex===i) return; const [item]=sl.items.splice(dragIndex,1); sl.items.splice(i,0,item); dragIndex=null; save(); renderSetlist();}
+function onDragEnd(){dragIndex=null; document.querySelectorAll('.setlist-item').forEach(x=>x.classList.remove('dragging'));}
+function loadOfficialToSetlist(){const t=currentSetTeam(); const sl=ensureSetlist(t); if(sl.items.length && !confirm("現在のセトリを上書きして公式獲得曲を読み込みますか？")) return; sl.items=teamSongs(t).map(s=>({type:"song",songId:s.id,memo:""})); save(); renderSetlist();}
+function loadPlayerMineToSetlist(){const t=currentSetTeam(); const sl=ensureSetlist(t); if(sl.items.length && !confirm("現在のセトリを上書きしてプレイヤー獲得曲を読み込みますか？")) return; sl.items=playerMineSongs().map(s=>({type:"song",songId:s.id,memo:""})); save(); renderSetlist();}
+function addMarker(type,label){const sl=ensureSetlist(currentSetTeam()); sl.items.push({type,label,memo:""}); save(); renderSetlist();}
+function addSongToSetlist(){const val=$("setlistSongAddInput").value.trim(); const s=songByTitle(val); if(!s){alert("曲名がリストにありません"); return;} const sl=ensureSetlist(currentSetTeam()); sl.items.push({type:"song",songId:s.id,memo:""}); $("setlistSongAddInput").value=""; save(); renderSetlist();}
+function generatePresentationText(){
+  const t=currentSetTeam(); const sl=ensureSetlist(t); sl.venue=$("venueInput").value; sl.concept=$("conceptInput").value; save();
+  let n=1; const lines=[]; lines.push("Extra Live Dream Day 1"); lines.push(`チーム：${teamName(t)}`); lines.push(`会場：${sl.venue||"未設定"}`); lines.push(`コンセプト：${sl.concept||"未設定"}`); lines.push(""); lines.push("【セットリスト】");
+  sl.items.forEach(item=>{if(item.type==="song"){const s=songById(item.songId); lines.push(`${String(n).padStart(2,"0")}. ${s?.title||"不明な曲"}${item.memo?`　— ${item.memo}`:""}`); n++;} else {lines.push(`--- ${item.label||item.type}${item.memo?`：${item.memo}`:""} ---`);}});
+  const q=quotaCounts(sl.items.filter(x=>x.type==="song").map(x=>songById(x.songId)).filter(Boolean)); lines.push(""); lines.push("【ノルマ確認】"); Object.entries(QUOTA).forEach(([c,need])=>lines.push(`${c}: ${q[c]||0}/${need}`));
+  return lines.join("\n");
+}
+function renderPresentation(){const text=generatePresentationText(); $("presentationOutput").textContent=text; return text;}
+function downloadText(filename,text,mime="text/plain;charset=utf-8"){
+  const blob=new Blob([text],{type:mime}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+function toast(msg){const el=$("toast"); el.textContent=msg; el.classList.add("show"); setTimeout(()=>el.classList.remove("show"),1500);}
+function renderAll(){refreshTeamSelects(); renderRoundInputs(); renderHostSummary(); renderHostCandidates(); renderHistory(); renderPlayer(); renderAllSongs(); renderSetlist(); validateRoundInputs();}
+function wire(){
+  document.querySelectorAll(".tab").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".tab,.panel").forEach(x=>x.classList.remove("active")); btn.classList.add("active"); $(btn.dataset.tab).classList.add("active"); renderAll();}));
+  TEAM_KEYS.forEach(k=>$(`team${k}Name`).addEventListener("input",()=>{state.teamNames[k]=$(`team${k}Name`).value; save(); refreshTeamSelects(); renderRoundInputs(); renderHostSummary(); renderHostCandidates(); renderHistory(); renderSetlist();}));
+  $("registerRoundBtn").addEventListener("click",registerRound); $("clearRoundInputsBtn").addEventListener("click",()=>{TEAM_KEYS.forEach(clearRoundInput);});
+  document.addEventListener("input",e=>{if(e.target?.id?.startsWith("roundInput_")) validateRoundInputs();});
+  ["hostSongSearch","hostCategoryFilter"].forEach(id=>$(id).addEventListener("input",renderHostCandidates));
+  $("undoBtn").addEventListener("click",undoLast);
+  $("resetOfficialBtn").addEventListener("click",()=>{if(confirm("公式記録をリセットしますか？")){state.official={}; state.history=[]; save(); renderAll();}});
+  ["playerSongSearch","playerCategoryFilter","playerStatusFilter","playerPriorityFilter"].forEach(id=>$(id).addEventListener("input",renderPlayer));
+  $("clearPlayerMarks").addEventListener("click",()=>{if(confirm("プレイヤー作戦メモをリセットしますか？")){state.playerMarks={}; save(); renderPlayer();}});
+  ["allSongSearch","allCategoryFilter"].forEach(id=>$(id).addEventListener("input",renderAllSongs));
+  $("setlistTeam").addEventListener("change",renderSetlist);
+  $("venueInput").addEventListener("input",()=>{ensureSetlist(currentSetTeam()).venue=$("venueInput").value; save();});
+  $("conceptInput").addEventListener("input",()=>{ensureSetlist(currentSetTeam()).concept=$("conceptInput").value; save();});
+  $("loadOfficialSongsBtn").addEventListener("click",loadOfficialToSetlist); $("loadPlayerMineBtn").addEventListener("click",loadPlayerMineToSetlist);
+  $("addMCBtn").addEventListener("click",()=>addMarker("MC","MC")); $("addMovieBtn").addEventListener("click",()=>addMarker("幕間映像","幕間映像")); $("addEncoreBtn").addEventListener("click",()=>addMarker("アンコール","ENCORE"));
+  $("addSongToSetlistBtn").addEventListener("click",addSongToSetlist); $("generatePresentationBtn").addEventListener("click",renderPresentation);
+  $("copyPresentationBtn").addEventListener("click",()=>{const text=renderPresentation(); navigator.clipboard?.writeText(text).then(()=>toast("コピーしました")).catch(()=>alert("コピーできませんでした。手動で選択してください。"));});
+  $("downloadPresentationBtn").addEventListener("click",()=>downloadText(`hasunosora_setlist_${currentSetTeam()}.txt`,renderPresentation()));
+  $("saveLocalBtn").addEventListener("click",()=>{save(); toast("保存しました");});
+  $("exportJsonBtn").addEventListener("click",()=>{$("importJsonArea").value=JSON.stringify(state,null,2); navigator.clipboard?.writeText($("importJsonArea").value).then(()=>toast("JSONをコピーしました")).catch(()=>toast("JSONを出力しました"));});
+  $("downloadJsonBtn").addEventListener("click",()=>downloadText("hasunosora_draft_backup.json",JSON.stringify(state,null,2),"application/json;charset=utf-8"));
+  $("importJsonBtn").addEventListener("click",()=>{try{const data=JSON.parse($("importJsonArea").value); state=migrateState(data); save(); syncTeamInputs(); renderAll(); toast("読み込みました");}catch(e){alert("JSONの形式が正しくありません")}});
+  $("resetAllBtn").addEventListener("click",()=>{if(confirm("全データを初期化しますか？")){storageRemove(STORAGE_KEY); OLD_STORAGE_KEYS.forEach(storageRemove); location.reload();}});
+}
+load();
+document.addEventListener("DOMContentLoaded",()=>{initStaticOptions(); syncTeamInputs(); refreshTeamSelects(); renderRoundInputs(); wire(); renderAll(); renderBootNotice();});
+</script>
+</body>
+</html>
