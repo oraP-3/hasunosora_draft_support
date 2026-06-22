@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>蓮ノ空ドラフトサポート v1.2.1</title>
+<title>蓮ノ空ドラフトサポート v1.2.3</title>
 <style>
   :root{
     --bg:#f8fafc; --card:#ffffff; --ink:#172033; --muted:#6b7280; --line:#e5e7eb;
@@ -53,6 +53,17 @@
   .pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:4px 8px;font-size:12px;font-weight:800;background:#f3f4f6;color:#374151;margin:2px;vertical-align:middle}
   .pill.ok{background:#d1fae5;color:#065f46}.pill.warn{background:#fef3c7;color:#92400e}.pill.bad{background:#fee2e2;color:#991b1b}.pill.purple{background:#ede9fe;color:#5b21b6}.pill.blue{background:#dbeafe;color:#1d4ed8}.pill.pink{background:#fce7f3;color:#be185d}
   .song-list{max-height:500px;overflow:auto;border:1px solid var(--line);border-radius:12px;background:#fff}
+
+  .suggest-list{margin-top:6px;border:1px solid var(--line);border-radius:12px;background:#fff;max-height:230px;overflow:auto;display:none;box-shadow:0 8px 18px rgba(15,23,42,.08)}
+  .suggest-list.show{display:block}
+  .suggest-option{width:100%;display:flex;justify-content:space-between;gap:8px;align-items:center;text-align:left;background:#fff;color:var(--ink);border:0;border-bottom:1px solid #f3f4f6;border-radius:0;padding:10px 12px;white-space:normal}
+  .suggest-option:last-child{border-bottom:0}
+  .suggest-option:hover,.suggest-option:focus{background:#f5f3ff}
+  .suggest-option small{color:var(--muted);font-weight:700;flex:0 0 auto}
+  .quick-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
+  .quick-result{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;border-bottom:1px solid #f3f4f6;padding:10px 12px}
+  .quick-result:last-child{border-bottom:0}
+  @media(max-width:780px){.quick-result{grid-template-columns:1fr}.quick-actions{justify-content:flex-start}}
   .song{display:grid;grid-template-columns:1fr auto;gap:8px;padding:10px;border-bottom:1px solid #f3f4f6;align-items:center}
   .song:last-child{border-bottom:0}.song-title{font-weight:800}.song-meta{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.5}
   .song.acquired{background:#f9fafb;color:#9ca3af}.song.mine{background:#ecfdf5}.song.wish{background:#fffbeb}.song.taken{background:#fef2f2;color:#7f1d1d}.song.pickable:hover{background:#f5f3ff}
@@ -74,6 +85,80 @@
   .summaryBox{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.summaryBox>div{background:#fafafa;border:1px solid var(--line);border-radius:12px;padding:10px}
   @media(max-width:780px){.summaryBox{grid-template-columns:1fr}.progress-line{grid-template-columns:1fr 44px 90px}}
   .copyToast{position:fixed;right:16px;bottom:16px;background:#111827;color:white;padding:10px 14px;border-radius:12px;font-weight:800;opacity:0;transform:translateY(8px);transition:.2s;z-index:99}.copyToast.show{opacity:1;transform:translateY(0)}
+
+
+  /* v1.2.3 compact UI tuning */
+  .team-settings{margin:0 0 8px;border:1px solid var(--line);border-radius:10px;padding:8px;background:#fff}
+  .team-settings summary{font-size:13px;font-weight:800;cursor:pointer;color:var(--muted)}
+  #host .hint{display:none}
+  #host .card{padding:12px}
+  #host .card .card{padding:10px;border-radius:12px}
+  #host .grid4{gap:8px}
+  #host .grid4>div{background:#fafafa;border:1px solid var(--line);border-radius:10px;padding:8px}
+  #host .grid4 label{margin-bottom:3px}
+  #host .count-large{font-size:28px}
+  #host .team-card{padding:10px!important;margin-bottom:8px!important;border-radius:12px!important}
+  #host .team-card h3{font-size:14px;margin-bottom:6px;line-height:1.35}
+  #host .team-card details{font-size:13px}
+  #host .progress-line{padding:4px 0;grid-template-columns:minmax(112px,1fr) 42px 84px;font-size:13px}
+  #host .song-list{max-height:420px}
+  #hostSongCandidates .song,
+  #historyList .song,
+  #hostQuickResults .quick-result{padding:7px 9px}
+  #hostSongCandidates .song-title,
+  #historyList .song-title,
+  #hostQuickResults .song-title{font-size:14px;line-height:1.25}
+  #hostSongCandidates .song-meta,
+  #historyList .song-meta,
+  #hostQuickResults .song-meta{font-size:10px;margin-top:1px}
+  #hostSongCandidates .actions button,
+  #hostQuickResults .quick-actions button{min-width:36px;padding:6px 8px}
+
+  @media(max-width:780px){
+    body{font-size:14px}
+    header{padding:10px 12px 8px}
+    h1{font-size:17px;margin:0}
+    .version{font-size:10px;padding:4px 7px}
+    main{padding:8px}
+    .tabs{gap:5px;margin-bottom:8px;overflow-x:auto;flex-wrap:nowrap;padding:6px 0;position:sticky;top:0}
+    .tab{padding:7px 10px;font-size:12px;flex:0 0 auto}
+    .card{border-radius:12px;padding:10px;box-shadow:0 4px 14px rgba(15,23,42,.045)}
+    .card + .card{margin-top:10px}
+    h2{font-size:16px;margin-bottom:8px}
+    h3{font-size:14px;margin-bottom:6px}
+    label{font-size:11px;margin-bottom:3px}
+    input,select,textarea{font-size:14px;padding:8px;border-radius:9px}
+    button{font-size:13px;padding:8px 10px;border-radius:9px}
+    button.mini{font-size:12px;padding:5px 7px;border-radius:8px}
+    .footer-actions{gap:6px;margin-top:8px}
+    .row{gap:6px}.row>*{min-width:0}
+    #host .grid4{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:6px}
+    #host .grid4>div{padding:6px 5px}
+    #host .grid4 label{font-size:9px;line-height:1.15;min-height:22px}
+    #host .count-large{font-size:23px}
+    .roundRow{grid-template-columns:62px minmax(0,1fr) 38px!important;gap:5px;margin-bottom:6px;align-items:end}
+    .roundRow label{font-size:10px}.roundRow .pill{font-size:11px;padding:3px 6px;margin:0}
+    .suggest-list{max-height:190px}
+    .suggest-option{padding:8px 9px;font-size:13px}
+    #host .progress-line{grid-template-columns:minmax(88px,1fr) 34px 56px;font-size:12px;gap:5px;padding:3px 0}
+    #host .progress-line .pill{font-size:10px;padding:3px 6px}
+    #host .bar{height:6px}
+    #hostQuota{display:grid;gap:8px}
+    #host .team-card{padding:9px!important;margin-bottom:0!important}
+    .notice{font-size:12px;padding:8px 9px;margin:6px 0}
+    .song{grid-template-columns:minmax(0,1fr) auto!important;gap:6px;padding:7px 8px}
+    .song-title{font-size:14px;line-height:1.25}.song-meta{font-size:10px;margin-top:1px}
+    .actions{gap:4px;justify-content:flex-end!important;flex-wrap:nowrap}
+    #hostSongCandidates .actions button,
+    #hostQuickResults .quick-actions button{min-width:34px;padding:5px 7px}
+    .quick-result{grid-template-columns:minmax(0,1fr) auto!important;gap:6px}
+    .quick-actions{flex-wrap:nowrap;justify-content:flex-end!important}
+    .pill{font-size:11px;padding:3px 7px;margin:1px}
+    .song-list{max-height:420px}
+    #roundValidation{font-size:11px}
+    #host .card .card{margin-top:8px!important}
+  }
+
 </style>
 </head>
 <body>
@@ -83,11 +168,10 @@
       <h1>🪷 蓮ノ空ドラフトサポート</h1>
       
     </div>
-    <div class="version">v1.2.1 / Offline HTML</div>
+    <div class="version">v1.2.3</div>
   </div>
 </header>
 <main>
-  <div id="bootNotice" class="notice info" style="display:none">アプリ起動チェック中...</div>
   <div class="tabs">
     <button class="tab active" data-tab="host">司会：公式記録</button>
     <button class="tab" data-tab="player">プレイヤー：作戦</button>
@@ -99,15 +183,17 @@
   <section id="host" class="panel active">
     <div class="grid">
       <div class="card sticky">
-        <h2>司会用：公式獲得記録</h2>
-        <div class="hint">ホワイトボード公開・抽選が終わった後、最終的に各チームが獲得した曲だけを登録します。くじ引き、ジャンケン、タイマーはアナログ運用のままです。</div>
-        <div class="grid3" style="margin-top:12px">
-          <div><label>Aチーム名</label><input id="teamAName" value="Aチーム"></div>
-          <div><label>Bチーム名</label><input id="teamBName" value="Bチーム"></div>
-          <div><label>Cチーム名</label><input id="teamCName" value="Cチーム"></div>
-        </div>
+        <h2>公式獲得記録</h2>
+        <details class="team-settings">
+          <summary>チーム名設定</summary>
+          <div class="grid3" style="margin-top:8px">
+            <div><label>Aチーム名</label><input id="teamAName" value="Aチーム"></div>
+            <div><label>Bチーム名</label><input id="teamBName" value="Bチーム"></div>
+            <div><label>Cチーム名</label><input id="teamCName" value="Cチーム"></div>
+          </div>
+        </details>
         <div class="card" style="box-shadow:none;margin-top:12px;background:#fbfbff">
-          <h3>この巡の獲得結果をまとめて登録</h3>
+          <h3>この巡を登録</h3>
           <div id="roundInputs"></div>
           <div class="footer-actions">
             <button id="registerRoundBtn">この巡を登録</button>
@@ -116,9 +202,10 @@
           <div id="roundValidation" class="small" style="margin-top:8px"></div>
         </div>
         <div class="row" style="margin-top:12px">
-          <div><label>曲名検索</label><input id="hostSongSearch" placeholder="未獲得曲を検索"></div>
+          <div><label>曲名検索</label><input id="hostSongSearch" placeholder="未獲得曲を検索" autocomplete="off" inputmode="search"></div>
           <div><label>カテゴリ</label><select id="hostCategoryFilter"></select></div>
         </div>
+        <div id="hostQuickResults" class="suggest-list"></div>
         <div class="footer-actions">
           <button class="gray" id="undoBtn">直前の登録を取り消し</button>
           <button class="danger" id="resetOfficialBtn">公式記録リセット</button>
@@ -262,8 +349,10 @@
         <button style="margin-top:8px" id="importJsonBtn">JSONを読み込む</button>
       </div>
       <div class="card">
-        <h2>v1.2で追加したこと</h2>
+        <h2>更新履歴</h2>
         <ul class="small">
+          <li>v1.2.2：アプリ起動OK表示を削除。</li>
+          <li>v1.2.3：スマホ・iPad向けに、UIを全体的に圧縮。司会画面の未獲得曲一覧はA/B/Cの短い登録ボタンに変更。</li>
           <li>司会モードに「この巡の3チーム分まとめて登録」を追加。</li>
           <li>未獲得曲一覧からA/B/Cへ直接登録できるように変更。</li>
           <li>履歴表示と個別削除を追加。</li>
@@ -278,7 +367,7 @@
 <datalist id="songDatalist"></datalist>
 <div id="toast" class="copyToast">コピーしました</div>
 <script>
-const APP_VERSION = "1.2.1";
+const APP_VERSION = "1.2.2";
 const STORAGE_KEY = "hasuDraftSupportV12";
 const OLD_STORAGE_KEYS = ["hasuDraftSupportV11", "hasuDraftSupportV1"];
 const QUOTA = {"スリーズブーケ":3,"DOLLCHESTRA":3,"みらくらぱーく！":3,"Edel Note":2};
@@ -347,14 +436,6 @@ function load(){
     const data=JSON.parse(raw); state=migrateState(data);
   }catch(e){console.warn(e)}
 }
-function renderBootNotice(){
-  const el=$("bootNotice"); if(!el) return;
-  if(storageAvailable){
-    el.className="notice ok"; el.style.display="block"; el.textContent="✅ アプリ起動OK：ボタン操作できます。データはこの端末のブラウザ内に保存されます。";
-  }else{
-    el.className="notice warn"; el.style.display="block"; el.textContent="⚠️ アプリ起動OK：ただしこの表示環境では端末内保存が制限されています。操作はできますが、保存・読込画面のJSONバックアップを使ってください。";
-  }
-}
 function migrateState(data){
   const base=defaultState(); const next={...base,...data};
   next.teamNames={...base.teamNames,...(data.teamNames||{})};
@@ -383,10 +464,32 @@ function refreshTeamSelects(){
   fillSelectOptions("setlistTeam",opts,$("setlistTeam").value||"A");
 }
 function renderRoundInputs(){
-  const html=TEAM_KEYS.map(k=>`<div class="roundRow"><div><label>${esc(teamName(k))}</label><span class="pill ${k==='A'?'pink':k==='B'?'blue':'ok'}">${countByTeam(k)}/32曲</span></div><div><input id="roundInput_${k}" list="songDatalist" placeholder="${esc(teamName(k))}の獲得曲"></div><div><button class="mini gray" onclick="clearRoundInput('${k}')">クリア</button></div></div>`).join("");
+  const html=TEAM_KEYS.map(k=>`<div class="roundRow"><div><label>${k}チーム</label><span class="pill ${k==='A'?'pink':k==='B'?'blue':'ok'}">${countByTeam(k)}/32</span></div><div><input id="roundInput_${k}" placeholder="曲名を検索" autocomplete="off" inputmode="search"><div id="roundSuggest_${k}" class="suggest-list"></div></div><div><button class="mini gray" onclick="clearRoundInput('${k}')">消</button></div></div>`).join("");
   $("roundInputs").innerHTML=html;
 }
-function clearRoundInput(k){$(`roundInput_${k}`).value=""; validateRoundInputs();}
+function clearRoundInput(k){$(`roundInput_${k}`).value=""; hideRoundSuggest(k); validateRoundInputs();}
+function searchAvailableSongs(query, limit=10){
+  const q=norm(query);
+  if(!q) return [];
+  return songs.filter(s=>!assignedTeam(s.id) && norm(s.title).includes(q)).slice(0,limit);
+}
+function renderRoundSuggest(k){
+  const input=$(`roundInput_${k}`); const box=$(`roundSuggest_${k}`);
+  if(!input||!box) return;
+  const q=norm(input.value);
+  if(!q){box.innerHTML=""; box.classList.remove("show"); return;}
+  const list=searchAvailableSongs(input.value,8);
+  if(!list.length){box.innerHTML=`<div class="small" style="padding:10px 12px">候補がありません</div>`; box.classList.add("show"); return;}
+  box.innerHTML=list.map(s=>`<button type="button" class="suggest-option" onclick="selectRoundSong('${k}','${s.id}')"><span>${esc(s.title)}</span><small>${esc(s.category)}</small></button>`).join("");
+  box.classList.add("show");
+}
+function hideRoundSuggest(k){const box=$(`roundSuggest_${k}`); if(box){box.innerHTML=""; box.classList.remove("show");}}
+function selectRoundSong(k,songId){
+  const s=songById(songId); if(!s) return;
+  $(`roundInput_${k}`).value=s.title;
+  hideRoundSuggest(k);
+  validateRoundInputs();
+}
 function validateRoundInputs(){
   const entries=[]; const errors=[];
   TEAM_KEYS.forEach(k=>{const val=$(`roundInput_${k}`)?.value.trim(); if(val){const s=songByTitle(val); if(!s) errors.push(`${teamName(k)}：曲名がリストにありません`); else if(assignedTeam(s.id)) errors.push(`${teamName(k)}：${s.title} は獲得済みです`); else entries.push({team:k,song:s});}});
@@ -429,7 +532,16 @@ function renderHostSummary(){
 function renderHostCandidates(){
   const q=norm($("hostSongSearch").value); const cat=$("hostCategoryFilter").value;
   const list=songs.filter(s=>!assignedTeam(s.id)).filter(s=>(cat==="すべて"||s.category===cat)).filter(s=>!q||norm(s.title).includes(q));
-  $("hostSongCandidates").innerHTML=list.map(s=>`<div class="song pickable"><div><div class="song-title">${esc(s.title)}</div><div class="song-meta">${esc(s.category)}</div></div><div class="actions">${TEAM_KEYS.map(k=>`<button class="mini ${k==='A'?'danger':k==='B'?'secondary':'ok'}" onclick="assignDirect('${s.id}','${k}')">${esc(teamName(k))}</button>`).join("")}</div></div>`).join("") || `<div class="song"><div>該当する未獲得曲がありません。</div></div>`;
+  const itemHtml=s=>`<div class="song pickable"><div><div class="song-title">${esc(s.title)}</div><div class="song-meta">${esc(s.category)}</div></div><div class="actions">${TEAM_KEYS.map(k=>`<button class="mini ${k==='A'?'danger':k==='B'?'secondary':'ok'}" onclick="assignDirect('${s.id}','${k}')">${k}</button>`).join("")}</div></div>`;
+  $("hostSongCandidates").innerHTML=list.map(itemHtml).join("") || `<div class="song"><div>該当する未獲得曲がありません。</div></div>`;
+  const quick=$("hostQuickResults");
+  if(quick){
+    if(!q){quick.innerHTML=""; quick.classList.remove("show");}
+    else {
+      quick.innerHTML=list.slice(0,8).map(s=>`<div class="quick-result"><div><div class="song-title">${esc(s.title)}</div><div class="song-meta">${esc(s.category)}</div></div><div class="quick-actions">${TEAM_KEYS.map(k=>`<button class="mini ${k==='A'?'danger':k==='B'?'secondary':'ok'}" onclick="assignDirect('${s.id}','${k}')">${k}</button>`).join("")}</div></div>`).join("") || `<div class="small" style="padding:10px 12px">候補がありません</div>`;
+      quick.classList.add("show");
+    }
+  }
 }
 function renderHistory(){
   const items=[];
@@ -505,8 +617,13 @@ function wire(){
   document.querySelectorAll(".tab").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".tab,.panel").forEach(x=>x.classList.remove("active")); btn.classList.add("active"); $(btn.dataset.tab).classList.add("active"); renderAll();}));
   TEAM_KEYS.forEach(k=>$(`team${k}Name`).addEventListener("input",()=>{state.teamNames[k]=$(`team${k}Name`).value; save(); refreshTeamSelects(); renderRoundInputs(); renderHostSummary(); renderHostCandidates(); renderHistory(); renderSetlist();}));
   $("registerRoundBtn").addEventListener("click",registerRound); $("clearRoundInputsBtn").addEventListener("click",()=>{TEAM_KEYS.forEach(clearRoundInput);});
-  document.addEventListener("input",e=>{if(e.target?.id?.startsWith("roundInput_")) validateRoundInputs();});
-  ["hostSongSearch","hostCategoryFilter"].forEach(id=>$(id).addEventListener("input",renderHostCandidates));
+  document.addEventListener("input",e=>{if(e.target?.id?.startsWith("roundInput_")){const k=e.target.id.replace("roundInput_",""); validateRoundInputs(); renderRoundSuggest(k);}});
+  document.addEventListener("focusin",e=>{if(e.target?.id?.startsWith("roundInput_")){const k=e.target.id.replace("roundInput_",""); renderRoundSuggest(k);}});
+  document.addEventListener("change",e=>{if(e.target?.id?.startsWith("roundInput_")){const k=e.target.id.replace("roundInput_",""); validateRoundInputs(); renderRoundSuggest(k);}});
+  document.addEventListener("compositionend",e=>{if(e.target?.id?.startsWith("roundInput_")){const k=e.target.id.replace("roundInput_",""); validateRoundInputs(); renderRoundSuggest(k);}});
+  ["input","change","keyup","search","compositionend"].forEach(ev=>{
+    ["hostSongSearch","hostCategoryFilter"].forEach(id=>$(id).addEventListener(ev,renderHostCandidates));
+  });
   $("undoBtn").addEventListener("click",undoLast);
   $("resetOfficialBtn").addEventListener("click",()=>{if(confirm("公式記録をリセットしますか？")){state.official={}; state.history=[]; save(); renderAll();}});
   ["playerSongSearch","playerCategoryFilter","playerStatusFilter","playerPriorityFilter"].forEach(id=>$(id).addEventListener("input",renderPlayer));
@@ -527,7 +644,7 @@ function wire(){
   $("resetAllBtn").addEventListener("click",()=>{if(confirm("全データを初期化しますか？")){storageRemove(STORAGE_KEY); OLD_STORAGE_KEYS.forEach(storageRemove); location.reload();}});
 }
 load();
-document.addEventListener("DOMContentLoaded",()=>{initStaticOptions(); syncTeamInputs(); refreshTeamSelects(); renderRoundInputs(); wire(); renderAll(); renderBootNotice();});
+document.addEventListener("DOMContentLoaded",()=>{initStaticOptions(); syncTeamInputs(); refreshTeamSelects(); renderRoundInputs(); wire(); renderAll();});
 </script>
 </body>
 </html>
