@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>蓮ノ空ドラフトサポート v1.2.3</title>
+<title>蓮ノ空ドラフトサポート v1.2.4</title>
 <style>
   :root{
     --bg:#f8fafc; --card:#ffffff; --ink:#172033; --muted:#6b7280; --line:#e5e7eb;
@@ -159,6 +159,35 @@
     #host .card .card{margin-top:8px!important}
   }
 
+
+  /* v1.2.4: denser quota and category tabs */
+  .category-tabs{display:flex;gap:6px;overflow-x:auto;padding:0 0 8px;margin-top:-2px;scrollbar-width:none}
+  .category-tabs::-webkit-scrollbar{display:none}
+  .cat-tab{flex:0 0 auto;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:6px 9px;font-size:12px;font-weight:900}
+  .cat-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  #hostQuota{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .quota-card{border:1px solid var(--line);border-left:5px solid #ddd;border-radius:12px;background:#fff;padding:8px;min-width:0;box-shadow:none}
+  .quota-card.teamA{border-left-color:var(--pink)}.quota-card.teamB{border-left-color:var(--blue)}.quota-card.teamC{border-left-color:var(--green)}
+  .quota-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px;align-items:center;font-size:12px;line-height:1.2}
+  .quota-head b{font-size:14px}.quota-head span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.quota-head em{font-style:normal;color:var(--muted);font-weight:900}
+  .quota-chips{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px}
+  .quota-chip{border-radius:8px;padding:4px 5px;font-size:11px;font-weight:900;white-space:nowrap;display:flex;justify-content:space-between;gap:4px;align-items:center;background:#f3f4f6;color:#374151}
+  .quota-chip.ok{background:#d1fae5;color:#065f46}.quota-chip.warn{background:#fef3c7;color:#92400e}.quota-chip.bad{background:#fee2e2;color:#991b1b}
+  .quota-details{margin-top:5px;font-size:11px;color:var(--muted)}
+  .quota-details summary{cursor:pointer;font-weight:800}
+  #hostSongCandidates{max-height:520px}
+  @media(max-width:780px){
+    #hostQuota{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+    .quota-card{padding:6px;border-radius:10px;border-left-width:4px}
+    .quota-head{grid-template-columns:auto 1fr;gap:3px;font-size:10px}
+    .quota-head em{grid-column:1/3;font-size:10px}
+    .quota-head b{font-size:12px}.quota-head span{font-size:10px}
+    .quota-chips{grid-template-columns:1fr;gap:3px;margin-top:4px}
+    .quota-chip{font-size:10px;padding:3px 4px;border-radius:7px}
+    .quota-details{display:none}
+    #hostSongCandidates{max-height:560px}
+  }
+
 </style>
 </head>
 <body>
@@ -168,7 +197,7 @@
       <h1>🪷 蓮ノ空ドラフトサポート</h1>
       
     </div>
-    <div class="version">v1.2.3</div>
+    <div class="version">v1.2.4</div>
   </div>
 </header>
 <main>
@@ -229,6 +258,7 @@
         </div>
         <div class="card">
           <h2>未獲得曲一覧</h2>
+          <div id="hostCategoryTabs" class="category-tabs"></div>
           <div id="hostSongCandidates" class="song-list"></div>
         </div>
         <div class="card">
@@ -352,6 +382,7 @@
         <h2>更新履歴</h2>
         <ul class="small">
           <li>v1.2.2：アプリ起動OK表示を削除。</li>
+          <li>v1.2.4：ノルマ進捗を3列のコンパクト表示に変更。未獲得曲一覧にカテゴリタブを追加。</li>
           <li>v1.2.3：スマホ・iPad向けに、UIを全体的に圧縮。司会画面の未獲得曲一覧はA/B/Cの短い登録ボタンに変更。</li>
           <li>司会モードに「この巡の3チーム分まとめて登録」を追加。</li>
           <li>未獲得曲一覧からA/B/Cへ直接登録できるように変更。</li>
@@ -367,7 +398,7 @@
 <datalist id="songDatalist"></datalist>
 <div id="toast" class="copyToast">コピーしました</div>
 <script>
-const APP_VERSION = "1.2.2";
+const APP_VERSION = "1.2.4";
 const STORAGE_KEY = "hasuDraftSupportV12";
 const OLD_STORAGE_KEYS = ["hasuDraftSupportV11", "hasuDraftSupportV1"];
 const QUOTA = {"スリーズブーケ":3,"DOLLCHESTRA":3,"みらくらぱーく！":3,"Edel Note":2};
@@ -382,6 +413,7 @@ const songs = [
   ...["ハッピー至上主義！","Pleasure Feather","Colorfulness","ちょ、尊いLOVE","平成ギャルズ!!!!","Nɛw Black","IcHiGo milK","アステリズム","Love it! Wonderful Trip!","ペレニアル","恥は人生のかきすて","プレイリスト/「あの日」","Runway","Bless you!","be proud","幸せのリボン","ミジンコトランスフォーメーション","やっぱ天使!","ハロめぐ讃歌"].map(title=>({title,category:"ソロ曲・その他"}))
 ].map((s,i)=>({...s,id:`song_${i}`}));
 const categories = ["すべて","全体曲","スリーズブーケ","DOLLCHESTRA","みらくらぱーく！","Edel Note","ソロ曲・その他"];
+const catShort = {"すべて":"全部","全体曲":"全体","スリーズブーケ":"スリブ","DOLLCHESTRA":"ドルケ","みらくらぱーく！":"みらぱ","Edel Note":"EN","ソロ曲・その他":"他"};
 const priorityLabels = {S:"S：本命",A:"A：対抗",B:"B：外れ候補",C:"C：終盤候補",cut:"カット警戒",none:"未設定"};
 const statusLabels = {free:"未分類",wish:"欲しい",mine:"自分が獲得",taken:"他チーム獲得済み"};
 let state = defaultState();
@@ -410,7 +442,7 @@ function playerMineSongs(){return songs.filter(s=>playerMark(s.id).status==="min
 function quotaCounts(list){const counts={}; Object.keys(QUOTA).forEach(c=>counts[c]=0); list.forEach(s=>{if(s && counts[s.category]!==undefined) counts[s.category]++}); return counts;}
 function quotaHtml(list){const counts=quotaCounts(list); return Object.entries(QUOTA).map(([cat,need])=>{
   const got=counts[cat]||0; const cls=got>=need?'ok': got>0?'warn':'bad'; const pct=Math.min(100, Math.round(got/need*100));
-  return `<div class="progress-line"><span><span class="pill ${cls}">${esc(cat)}</span></span><span><b>${got}</b>/${need}</span><span class="bar"><span style="width:${pct}%"></span></span></div>`;
+  return `<div class="progress-line"><span><span class="pill ${cls}">${esc(catShort[cat]||cat)}</span></span><span><b>${got}</b>/${need}</span><span class="bar"><span style="width:${pct}%"></span></span></div>`;
 }).join("");}
 function missingQuota(list){const counts=quotaCounts(list); return Object.entries(QUOTA).filter(([c,n])=>(counts[c]||0)<n).map(([c])=>c);}
 function currentRound(){const counts=TEAM_KEYS.map(countByTeam); const min=Math.min(...counts); return min>=32 ? "完" : String(min+1);}
@@ -455,8 +487,12 @@ function fillSelectOptions(id, options, current){
   const el=$(id); const old=current!==undefined?current:el.value; el.innerHTML=options.map(o=>`<option value="${esc(o.value)}">${esc(o.label)}</option>`).join(""); if(options.some(o=>String(o.value)===String(old))) el.value=old;
 }
 function initStaticOptions(){
-  const catOptions=categories.map(c=>({value:c,label:c})); ["hostCategoryFilter","playerCategoryFilter","allCategoryFilter"].forEach(id=>fillSelectOptions(id,catOptions,"すべて"));
+  const catOptions=categories.map(c=>({value:c,label:c}));
+  const hostCatOptions=categories.map(c=>({value:c,label:catShort[c]||c}));
+  fillSelectOptions("hostCategoryFilter",hostCatOptions,"すべて");
+  ["playerCategoryFilter","allCategoryFilter"].forEach(id=>fillSelectOptions(id,catOptions,"すべて"));
   $("songDatalist").innerHTML=songs.map(s=>`<option value="${esc(s.title)}">${esc(s.category)}</option>`).join("");
+  renderHostCategoryTabs();
 }
 function syncTeamInputs(){TEAM_KEYS.forEach(k=>{$(`team${k}Name`).value=teamName(k)});}
 function refreshTeamSelects(){
@@ -518,6 +554,24 @@ function removeOfficial(songId){
   const s=songById(songId); if(!confirm(`${s?.title||"この曲"} の公式登録を削除しますか？`)) return;
   delete state.official[songId]; state.history=state.history.filter(h=>!(h.entries||[]).some(e=>e.songId===songId)); save(); renderAll();
 }
+
+function renderHostCategoryTabs(){
+  const box=$("hostCategoryTabs"); if(!box) return;
+  const current=$("hostCategoryFilter")?.value || "すべて";
+  box.innerHTML=categories.map(c=>`<button type="button" class="cat-tab ${c===current?'active':''}" onclick="setHostCategory('${esc(c)}')">${esc(catShort[c]||c)}</button>`).join("");
+}
+function setHostCategory(cat){
+  if($("hostCategoryFilter")) $("hostCategoryFilter").value=cat;
+  renderHostCategoryTabs();
+  renderHostCandidates();
+}
+function quotaMiniHtml(list){
+  const counts=quotaCounts(list);
+  return Object.entries(QUOTA).map(([cat,need])=>{
+    const got=counts[cat]||0; const cls=got>=need?'ok': got>0?'warn':'bad';
+    return `<span class="quota-chip ${cls}">${esc(catShort[cat]||cat)} <b>${got}/${need}</b></span>`;
+  }).join("");
+}
 function renderHostSummary(){
   const counts=TEAM_KEYS.map(countByTeam); const min=Math.min(...counts);
   $("roundNow").textContent=currentRound(); $("assignedCount").textContent=allAssignedCount(); $("remainingCount").textContent=songs.length-allAssignedCount(); $("minTeamCount").textContent=min;
@@ -527,18 +581,19 @@ function renderHostSummary(){
   if(min>=25){TEAM_KEYS.forEach(k=>{const miss=missingQuota(teamSongs(k)); if(miss.length) alert+=`<div class="notice bad">${esc(teamName(k))}：${esc(miss.join("、"))} を優先指名してください。</div>`;});}
   if(counts.some(c=>c!==min)) alert+=`<div class="notice info">チーム間の登録曲数がずれています。抽選後の再指名分など、未入力がないか確認してください。</div>`;
   $("hostAlerts").innerHTML=alert;
-  $("hostQuota").innerHTML=TEAM_KEYS.map(k=>`<div class="card team-card ${TEAM_CLASS[k]}" style="margin-bottom:10px;box-shadow:none"><h3>${esc(teamName(k))} <span class="small">${countByTeam(k)}/32曲</span></h3>${quotaHtml(teamSongs(k))}<details style="margin-top:8px"><summary>獲得曲一覧</summary><div class="small">${teamSongs(k).map(s=>`${esc(s.title)}（${esc(s.category)}） <button class='mini danger' onclick="removeOfficial('${s.id}')">削除</button>`).join("<br>") || "未登録"}</div></details></div>`).join("");
+  $("hostQuota").innerHTML=TEAM_KEYS.map(k=>`<div class="quota-card ${TEAM_CLASS[k]}"><div class="quota-head"><b>${k}</b><span title="${esc(teamName(k))}">${esc(teamName(k))}</span><em>${countByTeam(k)}/32</em></div><div class="quota-chips">${quotaMiniHtml(teamSongs(k))}</div><details class="quota-details"><summary>曲一覧</summary><div class="small">${teamSongs(k).map(s=>`${esc(s.title)}（${esc(catShort[s.category]||s.category)}） <button class='mini danger' onclick="removeOfficial('${s.id}')">削除</button>`).join("<br>") || "未登録"}</div></details></div>`).join("");
 }
 function renderHostCandidates(){
+  renderHostCategoryTabs();
   const q=norm($("hostSongSearch").value); const cat=$("hostCategoryFilter").value;
   const list=songs.filter(s=>!assignedTeam(s.id)).filter(s=>(cat==="すべて"||s.category===cat)).filter(s=>!q||norm(s.title).includes(q));
-  const itemHtml=s=>`<div class="song pickable"><div><div class="song-title">${esc(s.title)}</div><div class="song-meta">${esc(s.category)}</div></div><div class="actions">${TEAM_KEYS.map(k=>`<button class="mini ${k==='A'?'danger':k==='B'?'secondary':'ok'}" onclick="assignDirect('${s.id}','${k}')">${k}</button>`).join("")}</div></div>`;
+  const itemHtml=s=>`<div class="song pickable"><div><div class="song-title">${esc(s.title)}</div><div class="song-meta">${esc(catShort[s.category]||s.category)}</div></div><div class="actions">${TEAM_KEYS.map(k=>`<button class="mini ${k==='A'?'danger':k==='B'?'secondary':'ok'}" onclick="assignDirect('${s.id}','${k}')">${k}</button>`).join("")}</div></div>`;
   $("hostSongCandidates").innerHTML=list.map(itemHtml).join("") || `<div class="song"><div>該当する未獲得曲がありません。</div></div>`;
   const quick=$("hostQuickResults");
   if(quick){
     if(!q){quick.innerHTML=""; quick.classList.remove("show");}
     else {
-      quick.innerHTML=list.slice(0,8).map(s=>`<div class="quick-result"><div><div class="song-title">${esc(s.title)}</div><div class="song-meta">${esc(s.category)}</div></div><div class="quick-actions">${TEAM_KEYS.map(k=>`<button class="mini ${k==='A'?'danger':k==='B'?'secondary':'ok'}" onclick="assignDirect('${s.id}','${k}')">${k}</button>`).join("")}</div></div>`).join("") || `<div class="small" style="padding:10px 12px">候補がありません</div>`;
+      quick.innerHTML=list.slice(0,8).map(s=>`<div class="quick-result"><div><div class="song-title">${esc(s.title)}</div><div class="song-meta">${esc(catShort[s.category]||s.category)}</div></div><div class="quick-actions">${TEAM_KEYS.map(k=>`<button class="mini ${k==='A'?'danger':k==='B'?'secondary':'ok'}" onclick="assignDirect('${s.id}','${k}')">${k}</button>`).join("")}</div></div>`).join("") || `<div class="small" style="padding:10px 12px">候補がありません</div>`;
       quick.classList.add("show");
     }
   }
