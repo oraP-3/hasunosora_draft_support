@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>蓮ノ空ドラフトサポート v1.2.10</title>
+<title>蓮ノ空ドラフトサポート v1.2.12</title>
 <style>
   :root{
     --bg:#f8fafc; --card:#ffffff; --ink:#172033; --muted:#6b7280; --line:#e5e7eb;
@@ -201,6 +201,7 @@
   .player-summary-row{display:grid;grid-template-columns:auto 1fr;gap:7px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:7px 8px;background:#fafafa;min-width:0}
   .player-summary-row b{font-size:13px;white-space:nowrap}.player-summary-row .small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .player-song-list{max-height:620px}
+  .player-cat-tabs{margin-bottom:8px}
   .player-song{display:grid;grid-template-columns:1fr;gap:6px;padding:7px 9px;border-bottom:1px solid #f0f1f4;background:#fff}
   .player-song:last-child{border-bottom:0}
   .player-song.wish{background:#fffbeb}.player-song.mine{background:#ecfdf5}.player-song.taken{background:#fef2f2}.player-song.free{background:#fff}
@@ -247,7 +248,7 @@
       <h1>🪷 蓮ノ空ドラフトサポート</h1>
       
     </div>
-    <div class="version">v1.2.10</div>
+    <div class="version">v1.2.12</div>
   </div>
 </header>
 <main>
@@ -298,7 +299,7 @@
             <div><label>現在の目安巡</label><div id="roundNow" class="count-large">1</div></div>
             <div><label>公式登録数</label><div id="assignedCount" class="count-large">0</div></div>
             <div><label>残り楽曲数</label><div id="remainingCount" class="count-large">0</div></div>
-            <div><label>最少獲得曲数</label><div id="minTeamCount" class="count-large">0</div></div>
+            <div><label>最少D獲得</label><div id="minTeamCount" class="count-large">0</div></div>
           </div>
           <div id="hostAlerts"></div>
         </div>
@@ -357,6 +358,7 @@
         </div>
         <div class="card">
           <h2>楽曲チェック</h2>
+          <div id="playerCategoryTabs" class="category-tabs player-cat-tabs"></div>
           <div id="playerSongList" class="song-list player-song-list"></div>
         </div>
       </div>
@@ -433,6 +435,8 @@
       <div class="card">
         <h2>更新履歴</h2>
         <ul class="small">
+          <li>v1.2.11：Dream Believersを全チーム共通配布に変更。ドラフト対象は残り31曲に調整。</li>
+          <li>v1.2.11：プレイヤー楽曲チェックにもカテゴリタブを追加。</li>
           <li>v1.2.10：プレイヤー画面の楽曲チェックを2段レイアウトに圧縮し、表示を整理。</li>
           <li>v1.2.9：プレイヤー画面の「取済」ボタンを「他獲」に変更。</li>
           <li>v1.2.8：プレイヤー画面の操作ボタンを「解除・希望・獲得・取済」に変更。</li>
@@ -454,20 +458,44 @@
 <datalist id="songDatalist"></datalist>
 <div id="toast" class="copyToast">コピーしました</div>
 <script>
-const APP_VERSION = "1.2.4";
+const APP_VERSION = "1.2.12";
 const STORAGE_KEY = "hasuDraftSupportV12";
 const OLD_STORAGE_KEYS = ["hasuDraftSupportV11", "hasuDraftSupportV1"];
 const QUOTA = {"スリーズブーケ":3,"DOLLCHESTRA":3,"みらくらぱーく！":3,"Edel Note":2};
 const TEAM_KEYS = ["A","B","C"];
 const TEAM_CLASS = {A:"teamA",B:"teamB",C:"teamC"};
+const TOTAL_TARGET = 32;
+const DRAFT_TARGET = 31;
+const COMMON_SONG_TITLE = "Dream Believers";
 const songs = [
   ...["Dream Believers","On your mark","永遠のEuphoria","DEEPNESS","夏めきペイン","Yup!Yup!Yup!","明日の空の僕たちへ","Legato","Trick&Cute","ツバサ・ラ・リベルテ","Link to the FUTURE","抱きしめる花びら","STEP UP!","Bloom the smile,Bloom the dream!","365 Days","Now or Never","KEY of Like!","AURORA FLOWER","ゲッカビジン","おいでよ！石川大観光","いつでも、いつまでも","いったん","Hello,new dream!","アイドゥーミー!","とーひょー☆スター!","一生に夢が咲くように","はじまりの羽音","チャーミングな花束を!","雪舞う空と二秒の永遠","Echoes Beyond","JOKER.","今、過去、未来の三原色","ハナ咲けばユメ駆ける","光の中で花咲いて"].map(title=>({title,category:"全体曲"})),
   ...["水彩世界","Reflection in the mirror","フォーチュンムービー","Mix shake!!","謳歌爛漫","Holiday∞Holiday","眩耀夜行","Kawaii no susume","残陽","Dear my future","素顔のピクセル","シュガーメルト","千変万華","Special Thanks","Reflection in the mirror 104期NEW Ver.","アオクハルカ","月夜見海月","ハナムスビ","恋景色昭和ロマン","ユメワズライ","Chu! Chocolate","Celebration!","37.5℃のファンタジー","フルーツパンチ","My Lucky Clover","可惜夜花火","乙女詞華集","Sayo-Shigure","Berry Merry Go Round","不思議と君とライブラリー","金沢片恋慕"].map(title=>({title,category:"スリーズブーケ"})),
   ...["AWOKE","Sparkly Spot","ツキマカセ","希望的プリズム","スケイプゴート","Tragic Drops","Mirage Voyage","ジブンダイアリー","青春の輪郭","パラレルダンサー","Take It Over","飴色","KNOT","青とシャボン","Sparkly Spot 104期NEW Ver.","レディバグ","Proof","バアドケージ","ベジ・ラブ・ルー","COMPASS","レム","アンペア","アイマイメーデー","太陽であれ!","diamondz","ブルウモーメント","ガランドFlash","リブウト","フリジア","アイシイ","アンブレラ"].map(title=>({title,category:"DOLLCHESTRA"})),
   ...["ド！ド！ド！","ココン東西","ハクチューアラモード","アイデンティティ","天才なのかもしれない","ノンフィクションヒーローショー","ミルク","以心☆電信","BANG YOU グラビティ","マハラジャンボリー","アイデンティティ 104期NEW Ver.","みらくりえーしょん","ファンファーレ！！！","ジョーショーキリュー","マハラジャンボリーⅡ","全方位キュン♡","かくれんぼしよう","WAWO!","BLAST!!","Very! Very! COCO夏っ","ニャオシグニャル","ハートにQ","バイタルサイン","Hip,hip,hooray!","PANAI☆","トモダチになれる場所","センパイ"].map(title=>({title,category:"みらくらぱーく！"})),
   ...["Edelied","Retrofuture","天地黎明","チリコンカン","十六夜セレーネ","フュージョンクラスト","片翼のトリバガ","ドライブ・スペード・クレイジー","シアター生き様","令嬢モブ！","咲かnow!","EdelinieN","ミアモーレ・ミーアキャット","A出るノート"].map(title=>({title,category:"Edel Note"})),
-  ...["ハッピー至上主義！","Pleasure Feather","Colorfulness","ちょ、尊いLOVE","平成ギャルズ!!!!","Nɛw Black","IcHiGo milK","アステリズム","Love it! Wonderful Trip!","ペレニアル","恥は人生のかきすて","プレイリスト/「あの日」","Runway","Bless you!","be proud","幸せのリボン","ミジンコトランスフォーメーション","やっぱ天使!","ハロめぐ讃歌"].map(title=>({title,category:"ソロ曲・その他"}))
+  ...[
+    ["ハッピー至上主義！","かほめぐ♡じぇらーと"],
+    ["Pleasure Feather","蓮ノ休日"],
+    ["Colorfulness","るりのとゆかいなつづりたち"],
+    ["ちょ、尊いLOVE","Ruri&To"],
+    ["平成ギャルズ!!!!","Ruri&To"],
+    ["Nɛw Black","PRINCEε＞ε＞"],
+    ["IcHiGo milK","PRINCEε＞ε＞"],
+    ["アステリズム","102期生"],
+    ["Love it! Wonderful Trip!","103期生"],
+    ["ペレニアル","103期生"],
+    ["恥は人生のかきすて","104期生 / 蓮ノ小四辺形ver.含む"],
+    ["プレイリスト/「あの日」","日野下花帆"],
+    ["Runway","村野さやか"],
+    ["Bless you!","村野さやか"],
+    ["be proud","乙宗梢"],
+    ["幸せのリボン","夕霧綴理"],
+    ["ミジンコトランスフォーメーション","大沢瑠璃乃"],
+    ["やっぱ天使!","藤島慈"],
+    ["ハロめぐ讃歌","藤島慈"]
+  ].map(([title,vocal])=>({title,category:"ソロ曲・その他",vocal}))
 ].map((s,i)=>({...s,id:`song_${i}`}));
+const COMMON_SONG_ID = songs.find(s=>s.title===COMMON_SONG_TITLE)?.id || "song_0";
 const categories = ["すべて","全体曲","スリーズブーケ","DOLLCHESTRA","みらくらぱーく！","Edel Note","ソロ曲・その他"];
 const catShort = {"すべて":"全部","全体曲":"全体","スリーズブーケ":"スリブ","DOLLCHESTRA":"ドルケ","みらくらぱーく！":"みらぱ","Edel Note":"EN","ソロ曲・その他":"他"};
 const priorityLabels = {S:"S：本命",A:"A：対抗",B:"B：外れ候補",C:"C：終盤候補",cut:"カット警戒",none:"未設定"};
@@ -486,23 +514,34 @@ function defaultState(){return {
 function $(id){return document.getElementById(id)}
 function esc(s){return String(s??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));}
 function norm(s){return String(s||"").trim().toLowerCase();}
+function songMeta(s){
+  if(!s) return "";
+  if(s.vocal) return `${catShort[s.category]||s.category}：${s.vocal}`;
+  return catShort[s.category]||s.category;
+}
+function songSearchText(s){return norm(`${s?.title||""} ${s?.category||""} ${catShort[s?.category]||""} ${s?.vocal||""}`)}
 function songById(id){return songs.find(s=>s.id===id)}
 function songByTitle(title){const n=norm(title); return songs.find(s=>norm(s.title)===n)}
 function teamName(k){return state.teamNames[k]||`${k}チーム`}
-function assignedRec(songId){const rec=state.official[songId]; if(!rec) return null; return typeof rec==="string"?{team:rec,round:null,order:0}:rec;}
+function commonSong(){return songById(COMMON_SONG_ID)}
+function isCommonSong(songId){return songId===COMMON_SONG_ID}
+function draftSongs(){return songs.filter(s=>!isCommonSong(s.id))}
+function assignedRec(songId){if(isCommonSong(songId)) return null; const rec=state.official[songId]; if(!rec) return null; return typeof rec==="string"?{team:rec,round:null,order:0}:rec;}
 function assignedTeam(songId){return assignedRec(songId)?.team||null}
-function countByTeam(team){return Object.values(state.official).filter(r=>(typeof r==="string"?r:r.team)===team).length}
-function teamSongs(team){return songs.filter(s=>assignedTeam(s.id)===team).sort((a,b)=>(assignedRec(a.id)?.order??0)-(assignedRec(b.id)?.order??0));}
-function allAssignedCount(){return Object.keys(state.official).length}
+function countByTeam(team){return Object.entries(state.official).filter(([sid,r])=>!isCommonSong(sid) && (typeof r==="string"?r:r.team)===team).length}
+function teamSongs(team){return songs.filter(s=>!isCommonSong(s.id) && assignedTeam(s.id)===team).sort((a,b)=>(assignedRec(a.id)?.order??0)-(assignedRec(b.id)?.order??0));}
+function teamSongsWithCommon(team){const c=commonSong(); return c?[c,...teamSongs(team)]:teamSongs(team)}
+function allAssignedCount(){return Object.keys(state.official).filter(sid=>!isCommonSong(sid)).length}
 function playerMark(id){return state.playerMarks[id]||{status:"free",priority:"none",memo:""}}
-function playerMineSongs(){return songs.filter(s=>playerMark(s.id).status==="mine")}
+function playerDraftMineSongs(){return songs.filter(s=>!isCommonSong(s.id) && playerMark(s.id).status==="mine")}
+function playerMineSongs(){const c=commonSong(); return c?[c,...playerDraftMineSongs()]:playerDraftMineSongs()}
 function quotaCounts(list){const counts={}; Object.keys(QUOTA).forEach(c=>counts[c]=0); list.forEach(s=>{if(s && counts[s.category]!==undefined) counts[s.category]++}); return counts;}
 function quotaHtml(list){const counts=quotaCounts(list); return Object.entries(QUOTA).map(([cat,need])=>{
   const got=counts[cat]||0; const cls=got>=need?'ok': got>0?'warn':'bad'; const pct=Math.min(100, Math.round(got/need*100));
   return `<div class="progress-line"><span><span class="pill ${cls}">${esc(catShort[cat]||cat)}</span></span><span><b>${got}</b>/${need}</span><span class="bar"><span style="width:${pct}%"></span></span></div>`;
 }).join("");}
 function missingQuota(list){const counts=quotaCounts(list); return Object.entries(QUOTA).filter(([c,n])=>(counts[c]||0)<n).map(([c])=>c);}
-function currentRound(){const counts=TEAM_KEYS.map(countByTeam); const min=Math.min(...counts); return min>=32 ? "完" : String(min+1);}
+function currentRound(){const counts=TEAM_KEYS.map(countByTeam); const min=Math.min(...counts); return min>=DRAFT_TARGET ? "完" : String(min+1);}
 let storageAvailable = true;
 function storageGet(key){
   try{return window.localStorage ? localStorage.getItem(key) : null;}
@@ -529,10 +568,10 @@ function migrateState(data){
   const base=defaultState(); const next={...base,...data};
   next.teamNames={...base.teamNames,...(data.teamNames||{})};
   next.official={};
-  Object.entries(data.official||{}).forEach(([sid,val],i)=>{next.official[sid]=typeof val==="string"?{team:val,round:null,order:i+1}:val});
+  Object.entries(data.official||{}).forEach(([sid,val],i)=>{if(!isCommonSong(sid)) next.official[sid]=typeof val==="string"?{team:val,round:null,order:i+1}:val});
   next.history=Array.isArray(data.history)?data.history:[];
   next.playerMarks={};
-  Object.entries(data.playerMarks||{}).forEach(([sid,val])=>{next.playerMarks[sid]=typeof val==="string"?{status:val,priority:"none",memo:""}:{status:val.status||"free",priority:val.priority||"none",memo:val.memo||""}});
+  Object.entries(data.playerMarks||{}).forEach(([sid,val])=>{if(!isCommonSong(sid)) next.playerMarks[sid]=typeof val==="string"?{status:val,priority:"none",memo:""}:{status:val.status||"free",priority:val.priority||"none",memo:val.memo||""}});
   const oldSetlists=data.setlists||{}; next.setlists={};
   TEAM_KEYS.forEach(k=>{
     if(Array.isArray(oldSetlists[k])) next.setlists[k]={venue:(data.venues||{})[k]||"",concept:(data.concepts||{})[k]||"",items:oldSetlists[k]};
@@ -548,8 +587,9 @@ function initStaticOptions(){
   const hostCatOptions=categories.map(c=>({value:c,label:catShort[c]||c}));
   fillSelectOptions("hostCategoryFilter",hostCatOptions,"すべて");
   ["playerCategoryFilter","allCategoryFilter"].forEach(id=>fillSelectOptions(id,catOptions,"すべて"));
-  $("songDatalist").innerHTML=songs.map(s=>`<option value="${esc(s.title)}">${esc(s.category)}</option>`).join("");
+  $("songDatalist").innerHTML=draftSongs().map(s=>`<option value="${esc(s.title)}">${esc(songMeta(s))}</option>`).join("");
   renderHostCategoryTabs();
+  renderPlayerCategoryTabs();
 }
 function syncTeamInputs(){TEAM_KEYS.forEach(k=>{$(`team${k}Name`).value=teamName(k)});}
 function refreshTeamSelects(){
@@ -557,14 +597,14 @@ function refreshTeamSelects(){
   fillSelectOptions("setlistTeam",opts,$("setlistTeam").value||"A");
 }
 function renderRoundInputs(){
-  const html=TEAM_KEYS.map(k=>`<div class="roundRow"><div><label>${k}チーム</label><span class="pill ${k==='A'?'pink':k==='B'?'blue':'ok'}">${countByTeam(k)}/32</span></div><div><input id="roundInput_${k}" placeholder="曲名を検索" autocomplete="off" inputmode="search"><div id="roundSuggest_${k}" class="suggest-list"></div></div><div><button class="mini gray" onclick="clearRoundInput('${k}')">消</button></div></div>`).join("");
+  const html=TEAM_KEYS.map(k=>`<div class="roundRow"><div><label>${k}チーム</label><span class="pill ${k==='A'?'pink':k==='B'?'blue':'ok'}">${countByTeam(k)}/31</span></div><div><input id="roundInput_${k}" placeholder="曲名を検索" autocomplete="off" inputmode="search"><div id="roundSuggest_${k}" class="suggest-list"></div></div><div><button class="mini gray" onclick="clearRoundInput('${k}')">消</button></div></div>`).join("");
   $("roundInputs").innerHTML=html;
 }
 function clearRoundInput(k){$(`roundInput_${k}`).value=""; hideRoundSuggest(k); validateRoundInputs();}
 function searchAvailableSongs(query, limit=10){
   const q=norm(query);
   if(!q) return [];
-  return songs.filter(s=>!assignedTeam(s.id) && norm(s.title).includes(q)).slice(0,limit);
+  return draftSongs().filter(s=>!assignedTeam(s.id) && norm(s.title).includes(q)).slice(0,limit);
 }
 function renderRoundSuggest(k){
   const input=$(`roundInput_${k}`); const box=$(`roundSuggest_${k}`);
@@ -573,7 +613,7 @@ function renderRoundSuggest(k){
   if(!q){box.innerHTML=""; box.classList.remove("show"); return;}
   const list=searchAvailableSongs(input.value,8);
   if(!list.length){box.innerHTML=`<div class="small" style="padding:10px 12px">候補がありません</div>`; box.classList.add("show"); return;}
-  box.innerHTML=list.map(s=>`<button type="button" class="suggest-option" onclick="selectRoundSong('${k}','${s.id}')"><span>${esc(s.title)}</span><small>${esc(s.category)}</small></button>`).join("");
+  box.innerHTML=list.map(s=>`<button type="button" class="suggest-option" onclick="selectRoundSong('${k}','${s.id}')"><span>${esc(s.title)}</span><small>${esc(songMeta(s))}</small></button>`).join("");
   box.classList.add("show");
 }
 function hideRoundSuggest(k){const box=$(`roundSuggest_${k}`); if(box){box.innerHTML=""; box.classList.remove("show");}}
@@ -585,7 +625,7 @@ function selectRoundSong(k,songId){
 }
 function validateRoundInputs(){
   const entries=[]; const errors=[];
-  TEAM_KEYS.forEach(k=>{const val=$(`roundInput_${k}`)?.value.trim(); if(val){const s=songByTitle(val); if(!s) errors.push(`${teamName(k)}：曲名がリストにありません`); else if(assignedTeam(s.id)) errors.push(`${teamName(k)}：${s.title} は獲得済みです`); else entries.push({team:k,song:s});}});
+  TEAM_KEYS.forEach(k=>{const val=$(`roundInput_${k}`)?.value.trim(); if(val){const s=songByTitle(val); if(!s) errors.push(`${teamName(k)}：曲名がリストにありません`); else if(isCommonSong(s.id)) errors.push(`${teamName(k)}：${s.title} は共通配布曲です`); else if(assignedTeam(s.id)) errors.push(`${teamName(k)}：${s.title} は獲得済みです`); else entries.push({team:k,song:s});}});
   const ids=entries.map(e=>e.song.id); const dup=ids.find((id,i)=>ids.indexOf(id)!==i); if(dup) errors.push(`${songById(dup).title} が入力欄内で重複しています`);
   $("roundValidation").innerHTML = errors.length?`<span class="pill bad">要確認</span> ${esc(errors.join(" / "))}`:`<span class="pill ok">入力OK</span> ${entries.length}件登録できます`;
   return {entries,errors};
@@ -599,6 +639,7 @@ function registerRound(){
   save(); renderAll(); toast(`${entries.length}曲を登録しました`);
 }
 function assignDirect(songId,team){
+  if(isCommonSong(songId)){alert("Dream Believersは全チーム共通配布曲です"); return;}
   if(assignedTeam(songId)){alert("この曲はすでに獲得済みです"); return;}
   const round=Math.min(...TEAM_KEYS.map(countByTeam))+1; const batchId=`single_${Date.now()}`;
   state.official[songId]={team,round,order:allAssignedCount()+1,batchId}; state.history.push({type:"single",batchId,round,entries:[{songId,team}],at:new Date().toISOString()}); save(); renderAll();
@@ -608,6 +649,7 @@ function undoLast(){
   (last.entries||[]).forEach(e=>delete state.official[e.songId]); save(); renderAll(); toast("直前の登録を取り消しました");
 }
 function removeOfficial(songId){
+  if(isCommonSong(songId)){alert("Dream Believersは共通配布曲のため削除できません"); return;}
   const s=songById(songId); if(!confirm(`${s?.title||"この曲"} の公式登録を削除しますか？`)) return;
   delete state.official[songId]; state.history=state.history.filter(h=>!(h.entries||[]).some(e=>e.songId===songId)); save(); renderAll();
 }
@@ -622,6 +664,16 @@ function setHostCategory(cat){
   renderHostCategoryTabs();
   renderHostCandidates();
 }
+function renderPlayerCategoryTabs(){
+  const box=$("playerCategoryTabs"); if(!box) return;
+  const current=$("playerCategoryFilter")?.value || "すべて";
+  box.innerHTML=categories.map(c=>`<button type="button" class="cat-tab ${c===current?'active':''}" onclick="setPlayerCategory('${esc(c)}')">${esc(catShort[c]||c)}</button>`).join("");
+}
+function setPlayerCategory(cat){
+  if($("playerCategoryFilter")) $("playerCategoryFilter").value=cat;
+  renderPlayerCategoryTabs();
+  renderPlayer();
+}
 function quotaMiniHtml(list){
   const counts=quotaCounts(list);
   return Object.entries(QUOTA).map(([cat,need])=>{
@@ -631,26 +683,26 @@ function quotaMiniHtml(list){
 }
 function renderHostSummary(){
   const counts=TEAM_KEYS.map(countByTeam); const min=Math.min(...counts);
-  $("roundNow").textContent=currentRound(); $("assignedCount").textContent=allAssignedCount(); $("remainingCount").textContent=songs.length-allAssignedCount(); $("minTeamCount").textContent=min;
+  $("roundNow").textContent=currentRound(); $("assignedCount").textContent=allAssignedCount(); $("remainingCount").textContent=draftSongs().length-allAssignedCount(); $("minTeamCount").textContent=min;
   let alert="";
   if(min===16) alert+=`<div class="notice">16巡終了目安：ノルマ中間確認のタイミングです。</div>`;
   if(min===24) alert+=`<div class="notice">24巡終了目安：ノルマ最終確認のタイミングです。未達チームは25巡以降、未達ユニットを優先指名。</div>`;
-  if(min>=25){TEAM_KEYS.forEach(k=>{const miss=missingQuota(teamSongs(k)); if(miss.length) alert+=`<div class="notice bad">${esc(teamName(k))}：${esc(miss.join("、"))} を優先指名してください。</div>`;});}
+  if(min>=25){TEAM_KEYS.forEach(k=>{const miss=missingQuota(teamSongsWithCommon(k)); if(miss.length) alert+=`<div class="notice bad">${esc(teamName(k))}：${esc(miss.join("、"))} を優先指名してください。</div>`;});}
   if(counts.some(c=>c!==min)) alert+=`<div class="notice info">チーム間の登録曲数がずれています。抽選後の再指名分など、未入力がないか確認してください。</div>`;
   $("hostAlerts").innerHTML=alert;
-  $("hostQuota").innerHTML=TEAM_KEYS.map(k=>`<div class="quota-card ${TEAM_CLASS[k]}"><div class="quota-head"><b>${k}</b><span title="${esc(teamName(k))}">${esc(teamName(k))}</span><em>${countByTeam(k)}/32</em></div><div class="quota-chips">${quotaMiniHtml(teamSongs(k))}</div><details class="quota-details"><summary>曲一覧</summary><div class="small">${teamSongs(k).map(s=>`${esc(s.title)}（${esc(catShort[s.category]||s.category)}） <button class='mini danger' onclick="removeOfficial('${s.id}')">削除</button>`).join("<br>") || "未登録"}</div></details></div>`).join("");
+  $("hostQuota").innerHTML=TEAM_KEYS.map(k=>{const total=teamSongsWithCommon(k); const drafted=teamSongs(k); return `<div class="quota-card ${TEAM_CLASS[k]}"><div class="quota-head"><b>${k}</b><span title="${esc(teamName(k))}">${esc(teamName(k))}</span><em>${total.length}/${TOTAL_TARGET}</em></div><div class="quota-chips">${quotaMiniHtml(total)}</div><details class="quota-details"><summary>曲一覧</summary><div class="small"><b>共通：</b>${esc(COMMON_SONG_TITLE)}<br>${drafted.map(s=>`${esc(s.title)}（${esc(songMeta(s))}） <button class='mini danger' onclick="removeOfficial('${s.id}')">削除</button>`).join("<br>") || "ドラフト獲得曲なし"}</div></details></div>`}).join("");
 }
 function renderHostCandidates(){
   renderHostCategoryTabs();
   const q=norm($("hostSongSearch").value); const cat=$("hostCategoryFilter").value;
-  const list=songs.filter(s=>!assignedTeam(s.id)).filter(s=>(cat==="すべて"||s.category===cat)).filter(s=>!q||norm(s.title).includes(q));
-  const itemHtml=s=>`<div class="song pickable"><div><div class="song-title">${esc(s.title)}</div><div class="song-meta">${esc(catShort[s.category]||s.category)}</div></div><div class="actions">${TEAM_KEYS.map(k=>`<button class="mini ${k==='A'?'danger':k==='B'?'secondary':'ok'}" onclick="assignDirect('${s.id}','${k}')">${k}</button>`).join("")}</div></div>`;
+  const list=draftSongs().filter(s=>!assignedTeam(s.id)).filter(s=>(cat==="すべて"||s.category===cat)).filter(s=>!q||songSearchText(s).includes(q));
+  const itemHtml=s=>`<div class="song pickable"><div><div class="song-title">${esc(s.title)}</div><div class="song-meta">${esc(songMeta(s))}</div></div><div class="actions">${TEAM_KEYS.map(k=>`<button class="mini ${k==='A'?'danger':k==='B'?'secondary':'ok'}" onclick="assignDirect('${s.id}','${k}')">${k}</button>`).join("")}</div></div>`;
   $("hostSongCandidates").innerHTML=list.map(itemHtml).join("") || `<div class="song"><div>該当する未獲得曲がありません。</div></div>`;
   const quick=$("hostQuickResults");
   if(quick){
     if(!q){quick.innerHTML=""; quick.classList.remove("show");}
     else {
-      quick.innerHTML=list.slice(0,8).map(s=>`<div class="quick-result"><div><div class="song-title">${esc(s.title)}</div><div class="song-meta">${esc(catShort[s.category]||s.category)}</div></div><div class="quick-actions">${TEAM_KEYS.map(k=>`<button class="mini ${k==='A'?'danger':k==='B'?'secondary':'ok'}" onclick="assignDirect('${s.id}','${k}')">${k}</button>`).join("")}</div></div>`).join("") || `<div class="small" style="padding:10px 12px">候補がありません</div>`;
+      quick.innerHTML=list.slice(0,8).map(s=>`<div class="quick-result"><div><div class="song-title">${esc(s.title)}</div><div class="song-meta">${esc(songMeta(s))}</div></div><div class="quick-actions">${TEAM_KEYS.map(k=>`<button class="mini ${k==='A'?'danger':k==='B'?'secondary':'ok'}" onclick="assignDirect('${s.id}','${k}')">${k}</button>`).join("")}</div></div>`).join("") || `<div class="small" style="padding:10px 12px">候補がありません</div>`;
       quick.classList.add("show");
     }
   }
@@ -659,24 +711,25 @@ function renderHistory(){
   const items=[];
   Object.entries(state.official).forEach(([sid,rec])=>{const s=songById(sid); const r=assignedRec(sid); if(s&&r) items.push({song:s,rec:r});});
   items.sort((a,b)=>(b.rec.order??0)-(a.rec.order??0));
-  $("historyList").innerHTML=items.map(x=>`<div class="song"><div><div class="song-title">${esc(x.song.title)}</div><div class="song-meta">${esc(x.song.category)} / ${esc(teamName(x.rec.team))} 獲得 ${x.rec.round?`/ ${x.rec.round}巡目`:""}</div></div><div class="actions"><button class="mini danger" onclick="removeOfficial('${x.song.id}')">削除</button></div></div>`).join("") || `<div class="song"><div>まだ登録がありません。</div></div>`;
+  $("historyList").innerHTML=items.map(x=>`<div class="song"><div><div class="song-title">${esc(x.song.title)}</div><div class="song-meta">${esc(songMeta(x.song))} / ${esc(teamName(x.rec.team))} 獲得 ${x.rec.round?`/ ${x.rec.round}巡目`:""}</div></div><div class="actions"><button class="mini danger" onclick="removeOfficial('${x.song.id}')">削除</button></div></div>`).join("") || `<div class="song"><div>まだ登録がありません。</div></div>`;
 }
 function renderPlayer(){
+  renderPlayerCategoryTabs();
   const q=norm($("playerSongSearch").value); const cat=$("playerCategoryFilter").value; const st=$("playerStatusFilter").value; const pr=$("playerPriorityFilter").value;
-  const list=songs.filter(s=>(cat==="すべて"||s.category===cat)).filter(s=>!q||norm(s.title).includes(q)).filter(s=>{
+  const list=draftSongs().filter(s=>(cat==="すべて"||s.category===cat)).filter(s=>!q||songSearchText(s).includes(q)).filter(s=>{
     const m=playerMark(s.id); const status=m.status||"free"; const priority=m.priority||"none";
     return (st==="all"||status===st) && (pr==="all"||priority===pr);
   });
   const mine=playerMineSongs();
-  $("playerQuota").innerHTML=`<div class="player-quota-compact">${quotaMiniHtml(mine)}</div><div class="player-quota-count">自分が獲得：${mine.length}/32曲</div>`;
-  const byStatus={wish:[],mine:[],taken:[]}; songs.forEach(s=>{const m=playerMark(s.id); if(byStatus[m.status]) byStatus[m.status].push(s);});
+  $("playerQuota").innerHTML=`<div class="player-quota-compact">${quotaMiniHtml(mine)}</div><div class="player-quota-count">自分が獲得：${mine.length}/${TOTAL_TARGET}曲 <span class="small">※DB共通</span></div>`;
+  const byStatus={wish:[],mine:[],taken:[]}; draftSongs().forEach(s=>{const m=playerMark(s.id); if(byStatus[m.status]) byStatus[m.status].push(s);});
   $("playerSummary").innerHTML=[
     ["wish","欲しい"],["mine","獲得"],["taken","取られた"]
   ].map(([key,label])=>`<div class="player-summary-row"><b>${label} <span class="pill">${byStatus[key].length}</span></b><div class="small">${byStatus[key].slice(0,4).map(s=>esc(s.title)).join("、") || "なし"}${byStatus[key].length>4?"、…":""}</div></div>`).join("");
   $("playerSongList").innerHTML=list.map(s=>{
     const m=playerMark(s.id); const status=m.status||"free"; const priority=m.priority||"none";
     const statusCls=status==='mine'?'ok':status==='taken'?'bad':status==='wish'?'warn':'';
-    const meta = [`<span>${esc(catShort[s.category]||s.category)}</span>`];
+    const meta = [`<span>${esc(songMeta(s))}</span>`];
     if(status!=="free") meta.push(`<span class="pill ${statusCls}">${esc(statusLabels[status])}</span>`);
     if(priority!=="none") meta.push(`<span class="pill purple">${esc(priorityShortLabels[priority]||priority)}</span>`);
     return `<div class="player-song ${status}"><div class="player-song-head"><div class="player-song-main"><div class="player-song-title">${esc(s.title)}</div><div class="player-song-sub">${meta.join("")}</div></div><select class="player-priority" onchange="setPriority('${s.id}', this.value)">${Object.entries(priorityShortLabels).map(([v,l])=>`<option value="${v}" ${priority===v?'selected':''}>${esc(l)}</option>`).join("")}</select></div><div class="player-song-foot"><div class="player-actions-compact"><button class="mini gray" onclick="markPlayer('${s.id}','free')">解除</button><button class="mini warn" onclick="markPlayer('${s.id}','wish')">希望</button><button class="mini ok" onclick="markPlayer('${s.id}','mine')">獲得</button><button class="mini danger" onclick="markPlayer('${s.id}','taken')">他獲</button></div><input class="player-memo-compact" value="${esc(m.memo||"")}" placeholder="メモ" onchange="updatePlayerMemo('${s.id}', this.value)"></div></div>`;
@@ -687,10 +740,10 @@ function setPriority(id,priority){const m=playerMark(id); state.playerMarks[id]=
 function updatePlayerMemo(id,memo){const m=playerMark(id); state.playerMarks[id]={...m,memo}; save();}
 function renderAllSongs(){
   const q=norm($("allSongSearch").value); const cat=$("allCategoryFilter").value;
-  const list=songs.filter(s=>(cat==="すべて"||s.category===cat)).filter(s=>!q||norm(s.title).includes(q));
+  const list=songs.filter(s=>(cat==="すべて"||s.category===cat)).filter(s=>!q||songSearchText(s).includes(q));
   const counts={}; categories.slice(1).forEach(c=>counts[c]=songs.filter(s=>s.category===c).length);
   $("songCategoryCounts").innerHTML=Object.entries(counts).map(([c,n])=>`<div class="card" style="box-shadow:none;padding:10px"><div class="small">${esc(c)}</div><b>${n}曲</b></div>`).join("");
-  $("allSongList").innerHTML=list.map(s=>{const t=assignedTeam(s.id); return `<div class="song ${t?'acquired':''}"><div><div class="song-title">${esc(s.title)}</div><div class="song-meta">${esc(s.category)} ${t?`<span class="pill ok">公式：${esc(teamName(t))}獲得</span>`:''}</div></div></div>`}).join("");
+  $("allSongList").innerHTML=list.map(s=>{const t=assignedTeam(s.id); const common=isCommonSong(s.id); return `<div class="song ${t||common?'acquired':''}"><div><div class="song-title">${esc(s.title)}</div><div class="song-meta">${esc(songMeta(s))} ${common?`<span class="pill ok">全チーム共通配布</span>`:(t?`<span class="pill ok">公式：${esc(teamName(t))}獲得</span>`:'')}</div></div></div>`}).join("");
 }
 function ensureSetlist(team){if(!state.setlists[team] || Array.isArray(state.setlists[team])) state.setlists[team]={venue:"",concept:"",items:[]}; return state.setlists[team];}
 function currentSetTeam(){return $("setlistTeam").value||"A"}
@@ -698,7 +751,7 @@ function renderSetlist(){
   const t=currentSetTeam(); const sl=ensureSetlist(t); $("venueInput").value=sl.venue||""; $("conceptInput").value=sl.concept||"";
   const songItems=sl.items.filter(x=>x.type==="song").map(x=>songById(x.songId)).filter(Boolean);
   const miss=missingQuota(songItems); const songCount=songItems.length;
-  $("setlistStats").innerHTML=`<div class="notice ${songCount===32 && !miss.length?'ok':songCount>32?'bad':'info'}">曲数：${songCount}/32　${miss.length?`未達：${esc(miss.join("、"))}`:"ノルマOK"}</div>${quotaHtml(songItems)}`;
+  $("setlistStats").innerHTML=`<div class="notice ${songCount===TOTAL_TARGET && !miss.length?'ok':songCount>TOTAL_TARGET?'bad':'info'}">曲数：${songCount}/${TOTAL_TARGET}　${miss.length?`未達：${esc(miss.join("、"))}`:"ノルマOK"}</div>${quotaHtml(songItems)}`;
   $("setlistItems").innerHTML=sl.items.map((item,i)=>renderSetlistItem(item,i)).join("") || `<div class="small">まだ曲が読み込まれていません。</div>`;
 }
 function renderSetlistItem(item,i){
@@ -713,7 +766,7 @@ function onDragStart(i){dragIndex=i; setTimeout(()=>{document.querySelectorAll('
 function onDragOver(e){e.preventDefault();}
 function onDrop(i){const sl=ensureSetlist(currentSetTeam()); if(dragIndex===null || dragIndex===i) return; const [item]=sl.items.splice(dragIndex,1); sl.items.splice(i,0,item); dragIndex=null; save(); renderSetlist();}
 function onDragEnd(){dragIndex=null; document.querySelectorAll('.setlist-item').forEach(x=>x.classList.remove('dragging'));}
-function loadOfficialToSetlist(){const t=currentSetTeam(); const sl=ensureSetlist(t); if(sl.items.length && !confirm("現在のセトリを上書きして公式獲得曲を読み込みますか？")) return; sl.items=teamSongs(t).map(s=>({type:"song",songId:s.id,memo:""})); save(); renderSetlist();}
+function loadOfficialToSetlist(){const t=currentSetTeam(); const sl=ensureSetlist(t); if(sl.items.length && !confirm("現在のセトリを上書きして公式獲得曲を読み込みますか？")) return; sl.items=teamSongsWithCommon(t).map(s=>({type:"song",songId:s.id,memo:""})); save(); renderSetlist();}
 function loadPlayerMineToSetlist(){const t=currentSetTeam(); const sl=ensureSetlist(t); if(sl.items.length && !confirm("現在のセトリを上書きしてプレイヤー獲得曲を読み込みますか？")) return; sl.items=playerMineSongs().map(s=>({type:"song",songId:s.id,memo:""})); save(); renderSetlist();}
 function addMarker(type,label){const sl=ensureSetlist(currentSetTeam()); sl.items.push({type,label,memo:""}); save(); renderSetlist();}
 function addSongToSetlist(){const val=$("setlistSongAddInput").value.trim(); const s=songByTitle(val); if(!s){alert("曲名がリストにありません"); return;} const sl=ensureSetlist(currentSetTeam()); sl.items.push({type:"song",songId:s.id,memo:""}); $("setlistSongAddInput").value=""; save(); renderSetlist();}
@@ -743,7 +796,8 @@ function wire(){
   });
   $("undoBtn").addEventListener("click",undoLast);
   $("resetOfficialBtn").addEventListener("click",()=>{if(confirm("公式記録をリセットしますか？")){state.official={}; state.history=[]; save(); renderAll();}});
-  ["playerSongSearch","playerCategoryFilter","playerStatusFilter","playerPriorityFilter"].forEach(id=>$(id).addEventListener("input",renderPlayer));
+  ["playerSongSearch","playerStatusFilter","playerPriorityFilter"].forEach(id=>$(id).addEventListener("input",renderPlayer));
+  $("playerCategoryFilter").addEventListener("input",()=>{renderPlayerCategoryTabs(); renderPlayer();});
   $("clearPlayerMarks").addEventListener("click",()=>{if(confirm("プレイヤー作戦メモをリセットしますか？")){state.playerMarks={}; save(); renderPlayer();}});
   ["allSongSearch","allCategoryFilter"].forEach(id=>$(id).addEventListener("input",renderAllSongs));
   $("setlistTeam").addEventListener("change",renderSetlist);
