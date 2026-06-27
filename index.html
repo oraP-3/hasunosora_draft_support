@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>蓮ノ空ドラフトサポート v1.2.12</title>
+<title>蓮ノ空ドラフトサポート v1.2.13</title>
 <style>
   :root{
     --bg:#f8fafc; --card:#ffffff; --ink:#172033; --muted:#6b7280; --line:#e5e7eb;
@@ -192,7 +192,10 @@
 
   /* v1.2.7: compact player screen */
   /* v1.2.10: player song cards compressed to 2-row layout */
-  .player-dashboard{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+  .player-status-details{padding:10px 12px!important}
+  .player-status-details summary{font-weight:900;cursor:pointer;list-style:revert;color:var(--muted)}
+  .player-status-details[open] summary{margin-bottom:8px;color:var(--ink)}
+  .player-dashboard{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:0}
   .player-metric-card{margin-top:0!important;box-shadow:var(--shadow)}
   .player-metric-card h2{margin-bottom:8px}
   .player-quota-compact{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
@@ -248,7 +251,7 @@
       <h1>🪷 蓮ノ空ドラフトサポート</h1>
       
     </div>
-    <div class="version">v1.2.12</div>
+    <div class="version">v1.2.13</div>
   </div>
 </header>
 <main>
@@ -299,7 +302,6 @@
             <div><label>現在の目安巡</label><div id="roundNow" class="count-large">1</div></div>
             <div><label>公式登録数</label><div id="assignedCount" class="count-large">0</div></div>
             <div><label>残り楽曲数</label><div id="remainingCount" class="count-large">0</div></div>
-            <div><label>最少D獲得</label><div id="minTeamCount" class="count-large">0</div></div>
           </div>
           <div id="hostAlerts"></div>
         </div>
@@ -346,21 +348,24 @@
         </div>
       </div>
       <div>
-        <div class="player-dashboard">
-          <div class="card player-metric-card">
-            <h2>ノルマ</h2>
-            <div id="playerQuota"></div>
-          </div>
-          <div class="card player-metric-card">
-            <h2>作戦</h2>
-            <div id="playerSummary" class="player-summary-compact"></div>
-          </div>
-        </div>
         <div class="card">
           <h2>楽曲チェック</h2>
           <div id="playerCategoryTabs" class="category-tabs player-cat-tabs"></div>
           <div id="playerSongList" class="song-list player-song-list"></div>
         </div>
+        <details class="card player-status-details">
+          <summary>状況確認（ノルマ・作戦）</summary>
+          <div class="player-dashboard">
+            <div class="card player-metric-card">
+              <h2>ノルマ</h2>
+              <div id="playerQuota"></div>
+            </div>
+            <div class="card player-metric-card">
+              <h2>作戦</h2>
+              <div id="playerSummary" class="player-summary-compact"></div>
+            </div>
+          </div>
+        </details>
       </div>
     </div>
   </section>
@@ -458,7 +463,7 @@
 <datalist id="songDatalist"></datalist>
 <div id="toast" class="copyToast">コピーしました</div>
 <script>
-const APP_VERSION = "1.2.12";
+const APP_VERSION = "1.2.13";
 const STORAGE_KEY = "hasuDraftSupportV12";
 const OLD_STORAGE_KEYS = ["hasuDraftSupportV11", "hasuDraftSupportV1"];
 const QUOTA = {"スリーズブーケ":3,"DOLLCHESTRA":3,"みらくらぱーく！":3,"Edel Note":2};
@@ -517,6 +522,10 @@ function norm(s){return String(s||"").trim().toLowerCase();}
 function songMeta(s){
   if(!s) return "";
   if(s.vocal) return `${catShort[s.category]||s.category}：${s.vocal}`;
+  return catShort[s.category]||s.category;
+}
+function songCategoryOnly(s){
+  if(!s) return "";
   return catShort[s.category]||s.category;
 }
 function songSearchText(s){return norm(`${s?.title||""} ${s?.category||""} ${catShort[s?.category]||""} ${s?.vocal||""}`)}
@@ -587,7 +596,7 @@ function initStaticOptions(){
   const hostCatOptions=categories.map(c=>({value:c,label:catShort[c]||c}));
   fillSelectOptions("hostCategoryFilter",hostCatOptions,"すべて");
   ["playerCategoryFilter","allCategoryFilter"].forEach(id=>fillSelectOptions(id,catOptions,"すべて"));
-  $("songDatalist").innerHTML=draftSongs().map(s=>`<option value="${esc(s.title)}">${esc(songMeta(s))}</option>`).join("");
+  $("songDatalist").innerHTML=draftSongs().map(s=>`<option value="${esc(s.title)}">${esc(songCategoryOnly(s))}</option>`).join("");
   renderHostCategoryTabs();
   renderPlayerCategoryTabs();
 }
@@ -613,7 +622,7 @@ function renderRoundSuggest(k){
   if(!q){box.innerHTML=""; box.classList.remove("show"); return;}
   const list=searchAvailableSongs(input.value,8);
   if(!list.length){box.innerHTML=`<div class="small" style="padding:10px 12px">候補がありません</div>`; box.classList.add("show"); return;}
-  box.innerHTML=list.map(s=>`<button type="button" class="suggest-option" onclick="selectRoundSong('${k}','${s.id}')"><span>${esc(s.title)}</span><small>${esc(songMeta(s))}</small></button>`).join("");
+  box.innerHTML=list.map(s=>`<button type="button" class="suggest-option" onclick="selectRoundSong('${k}','${s.id}')"><span>${esc(s.title)}</span><small>${esc(songCategoryOnly(s))}</small></button>`).join("");
   box.classList.add("show");
 }
 function hideRoundSuggest(k){const box=$(`roundSuggest_${k}`); if(box){box.innerHTML=""; box.classList.remove("show");}}
@@ -683,7 +692,7 @@ function quotaMiniHtml(list){
 }
 function renderHostSummary(){
   const counts=TEAM_KEYS.map(countByTeam); const min=Math.min(...counts);
-  $("roundNow").textContent=currentRound(); $("assignedCount").textContent=allAssignedCount(); $("remainingCount").textContent=draftSongs().length-allAssignedCount(); $("minTeamCount").textContent=min;
+  $("roundNow").textContent=currentRound(); $("assignedCount").textContent=allAssignedCount(); $("remainingCount").textContent=draftSongs().length-allAssignedCount();
   let alert="";
   if(min===16) alert+=`<div class="notice">16巡終了目安：ノルマ中間確認のタイミングです。</div>`;
   if(min===24) alert+=`<div class="notice">24巡終了目安：ノルマ最終確認のタイミングです。未達チームは25巡以降、未達ユニットを優先指名。</div>`;
@@ -702,7 +711,7 @@ function renderHostCandidates(){
   if(quick){
     if(!q){quick.innerHTML=""; quick.classList.remove("show");}
     else {
-      quick.innerHTML=list.slice(0,8).map(s=>`<div class="quick-result"><div><div class="song-title">${esc(s.title)}</div><div class="song-meta">${esc(songMeta(s))}</div></div><div class="quick-actions">${TEAM_KEYS.map(k=>`<button class="mini ${k==='A'?'danger':k==='B'?'secondary':'ok'}" onclick="assignDirect('${s.id}','${k}')">${k}</button>`).join("")}</div></div>`).join("") || `<div class="small" style="padding:10px 12px">候補がありません</div>`;
+      quick.innerHTML=list.slice(0,8).map(s=>`<div class="quick-result"><div><div class="song-title">${esc(s.title)}</div><div class="song-meta">${esc(songCategoryOnly(s))}</div></div><div class="quick-actions">${TEAM_KEYS.map(k=>`<button class="mini ${k==='A'?'danger':k==='B'?'secondary':'ok'}" onclick="assignDirect('${s.id}','${k}')">${k}</button>`).join("")}</div></div>`).join("") || `<div class="small" style="padding:10px 12px">候補がありません</div>`;
       quick.classList.add("show");
     }
   }
